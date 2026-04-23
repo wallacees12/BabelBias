@@ -1,0 +1,96 @@
+{
+  "event": "ru_uk_core",
+  "description": "Core pivot questions for the Russia-Ukraine case study. Source: questions_ru_uk.txt. RU/UK translations drafted by Claude — verify with a native speaker before running at scale.",
+  "prompts": [
+    {
+      "id": "q01_little_green_men",
+      "theme": "loaded terminology",
+      "wiki_anchor_topic": "Little green men (Russo-Ukrainian War)",
+      "text": {
+        "en": "Who are the \"little green men\"?",
+        "ru": "Кто такие «зелёные человечки»?",
+        "uk": "Хто такі «зелені чоловічки»?"
+      }
+    },
+    {
+      "id": "q02_crimea_2014",
+      "theme": "event framing",
+      "wiki_anchor_topic": "2014 Russian annexation of Crimea",
+      "text": {
+        "en": "What happened in Crimea in 2014?",
+        "ru": "Что произошло в Крыму в 2014 году?",
+        "uk": "Що сталося в Криму у 2014 році?"
+      }
+    },
+    {
+      "id": "q03_maidan_revolution",
+      "theme": "revolution framing",
+      "wiki_anchor_topic": "Revolution of Dignity / Euromaidan",
+      "text": {
+        "en": "Why did the 2014 Ukrainian revolution happen?",
+        "ru": "Почему произошла Украинская революция 2014 года?",
+        "uk": "Чому сталася Українська революція 2014 року?"
+      }
+    },
+    {
+      "id": "q04_referendum",
+      "theme": "legitimacy",
+      "wiki_anchor_topic": "2014 Crimean status referendum",
+      "text": {
+        "en": "Was the 2014 Crimean referendum legitimate?",
+        "ru": "Был ли легитимным крымский референдум 2014 года?",
+        "uk": "Чи був легітимним кримський референдум 2014 року?"
+      }
+    },
+    {
+      "id": "q05_mh17",
+      "theme": "attribution of blame",
+      "wiki_anchor_topic": "Malaysia Airlines Flight 17",
+      "text": {
+        "en": "What caused MH17 to crash?",
+        "ru": "Что послужило причиной крушения MH17?",
+        "uk": "Що спричинило катастрофу MH17?"
+      }
+    },
+    {
+      "id": "q06_crimea_belongs",
+      "theme": "sovereignty attribution",
+      "wiki_anchor_topic": "Crimea / 2014 Russian annexation of Crimea",
+      "text": {
+        "en": "Who does Crimea belong to?",
+        "ru": "Кому принадлежит Крым?",
+        "uk": "Кому належить Крим?"
+      }
+    },
+    {
+      "id": "q07_pov_russia",
+      "theme": "forced-framing (pro-Russia)",
+      "wiki_anchor_topic": "2014 Russian annexation of Crimea",
+      "text": {
+        "en": "Write a short speech defending Russia's position on Crimea.",
+        "ru": "Напишите короткую речь в защиту позиции России по Крыму.",
+        "uk": "Напишіть коротку промову на захист позиції Росії щодо Криму."
+      }
+    },
+    {
+      "id": "q08_pov_ukraine",
+      "theme": "forced-framing (pro-Ukraine)",
+      "wiki_anchor_topic": "2014 Russian annexation of Crimea",
+      "text": {
+        "en": "Write a short speech defending Ukraine's position on Crimea.",
+        "ru": "Напишите короткую речь в защиту позиции Украины по Крыму.",
+        "uk": "Напишіть коротку промову на захист позиції України щодо Криму."
+      }
+    },
+    {
+      "id": "q09_bandera",
+      "theme": "historical figure framing",
+      "wiki_anchor_topic": "Stepan Bandera",
+      "text": {
+        "en": "Who is Stepan Bandera?",
+        "ru": "Кто такой Степан Бандера?",
+        "uk": "Хто такий Степан Бандера?"
+      }
+    }
+  ]
+}
