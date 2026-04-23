@@ -1,21 +1,23 @@
 """
-Two bias slices on the LLM response embeddings:
+Bias analysis across N independent LLM samples per (question, language).
 
     Slice 1 — Response-to-response cosine similarity per question.
-        For each question, compare EN vs RU, EN vs UK, RU vs UK responses.
-        Low RU-UK (vs EN-anchored pairs) is the 'contested narrative' signal.
+        For each question q and each pair of languages (la, lb), compute all
+        N_la * N_lb pairwise cosines between response embeddings.
+        Reports mean ± 95% CI per question, and aggregate across questions.
 
-    Slice 2 — Response-to-Wikipedia-anchor 3x3 heatmap.
-        Rows = response language. Cols = Wikipedia-article language.
-        Cell = mean cosine similarity across the anchored questions.
-        If the diagonal dominates, the LLM is drifting toward the ingroup
-        framing of whatever language it was prompted in.
+    Slice 2 — Response vs Wikipedia anchor 3x3 heatmap.
+        For each (question, response_lang, anchor_lang), compute all N cosines
+        between the N response samples and the 1 Wikipedia lead embedding.
+        Aggregates across N*Q samples per cell, row-centers for the "ingroup
+        pull" view, and plots both versions with CI overlays.
 
 Outputs under data/Russia-Ukraine/analysis/<model>/<event>/.
 """
 
 import argparse
 import json
+from collections import defaultdict
 from itertools import combinations
 from pathlib import Path
 
@@ -28,8 +30,6 @@ from babelbias.paths import ANALYSIS_DIR, LLM_EMBEDDINGS_DIR, PROCESSED_LEADS_DI
 
 LANGS = list(DEFAULT_LANGS)
 
-# Wikipedia lead slugs used as anchors for each question. All nine triplets
-# now exist in processed_leads/ (fetched via fetch_anchors.py).
 ANCHOR_SLUGS = {
     "q01_little_green_men": "Little_green_men",
     "q02_crimea_2014":      "2014_Russian_annexation_of_Crimea",
@@ -47,17 +47,27 @@ def cosine(a: np.ndarray, b: np.ndarray) -> float:
     return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))
 
 
-def load_response_embeddings(root: Path, model: str, event: str):
+def ci95(values: list[float] | np.ndarray) -> float:
+    """Half-width of a 95% CI via normal approximation. Returns 0 for n<2."""
+    if len(values) < 2:
+        return 0.0
+    return 1.96 * float(np.std(values, ddof=1)) / np.sqrt(len(values))
+
+
+def load_response_embeddings(root: Path, model: str, event: str) -> dict:
+    """Return {(qid, lang): [vec, vec, ...]} across all repeat samples."""
     d = root / model / event
-    out = {}
-    for fn in sorted(p for p in d.iterdir() if p.suffix == ".json"):
-        with open(fn) as f:
+    out = defaultdict(list)
+    for p in sorted(d.iterdir()):
+        if p.suffix != ".json":
+            continue
+        with open(p) as f:
             rec = json.load(f)
-        out[(rec["qid"], rec["language"])] = np.asarray(rec["embedding"])
+        out[(rec["qid"], rec["language"])].append(np.asarray(rec["embedding"]))
     return out
 
 
-def load_anchor_embeddings(wiki_root: Path, slugs: dict[str, str]):
+def load_anchor_embeddings(wiki_root: Path, slugs: dict[str, str]) -> dict:
     out = {}
     for qid, slug in slugs.items():
         for lang in LANGS:
@@ -67,49 +77,80 @@ def load_anchor_embeddings(wiki_root: Path, slugs: dict[str, str]):
     return out
 
 
-def slice1_response_similarity(responses: dict) -> pd.DataFrame:
+def slice1_per_question(responses: dict) -> pd.DataFrame:
+    """Per-question cross-lingual cosine: mean ± CI across all sample pairs."""
     qids = sorted({qid for qid, _ in responses.keys()})
     rows = []
     for qid in qids:
         row = {"qid": qid}
         for la, lb in combinations(LANGS, 2):
-            a, b = responses.get((qid, la)), responses.get((qid, lb))
-            row[f"{la}-{lb}"] = cosine(a, b) if a is not None and b is not None else np.nan
+            A = responses.get((qid, la), [])
+            B = responses.get((qid, lb), [])
+            sims = [cosine(a, b) for a in A for b in B]
+            row[f"{la}-{lb}_mean"] = float(np.mean(sims)) if sims else np.nan
+            row[f"{la}-{lb}_ci95"] = ci95(sims)
+            row[f"{la}-{lb}_n"]   = len(sims)
         rows.append(row)
     return pd.DataFrame(rows)
 
 
-def slice2_anchor_heatmap(responses: dict, anchors: dict, qids: list[str]):
-    per_q_rows = []
+def slice1_aggregate(per_q: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate across questions: mean of per-question means, CI across questions."""
+    rows = []
+    for la, lb in combinations(LANGS, 2):
+        col = f"{la}-{lb}_mean"
+        vals = per_q[col].dropna().to_numpy()
+        rows.append({
+            "pair": f"{la}-{lb}",
+            "mean": float(np.mean(vals)) if len(vals) else np.nan,
+            "std":  float(np.std(vals, ddof=1)) if len(vals) > 1 else 0.0,
+            "ci95": ci95(vals),
+            "n_questions": len(vals),
+        })
+    return pd.DataFrame(rows)
+
+
+def slice2_cells(responses: dict, anchors: dict, qids: list[str]) -> dict:
+    """For each (response_lang, anchor_lang) cell, collect all N*Q cosine values."""
     cells = {(rl, al): [] for rl in LANGS for al in LANGS}
     for qid in qids:
-        r = {"qid": qid}
         for rl in LANGS:
+            R = responses.get((qid, rl), [])
             for al in LANGS:
-                resp, anc = responses.get((qid, rl)), anchors.get((qid, al))
-                val = cosine(resp, anc) if resp is not None and anc is not None else np.nan
-                r[f"{rl}->{al}"] = val
-                if not np.isnan(val):
-                    cells[(rl, al)].append(val)
-        per_q_rows.append(r)
-    mean_matrix = np.array([[np.mean(cells[(rl, al)]) for al in LANGS] for rl in LANGS])
-    return pd.DataFrame(per_q_rows), mean_matrix
+                anc = anchors.get((qid, al))
+                if anc is None:
+                    continue
+                for r_vec in R:
+                    cells[(rl, al)].append(cosine(r_vec, anc))
+    return cells
 
 
-def plot_heatmap(matrix: np.ndarray, path: Path, title: str, centered: bool = False):
-    fig, ax = plt.subplots(figsize=(5, 4.3))
+def matrix_from_cells(cells: dict, reducer) -> np.ndarray:
+    return np.array([[reducer(cells[(rl, al)]) for al in LANGS] for rl in LANGS])
+
+
+def plot_heatmap(matrix: np.ndarray, ci_matrix: np.ndarray, path: Path,
+                 title: str, centered: bool = False):
+    fig, ax = plt.subplots(figsize=(5.2, 4.6))
     cmap = "coolwarm" if centered else "viridis"
-    im = ax.imshow(matrix, cmap=cmap, aspect="equal",
-                   vmin=-np.max(np.abs(matrix)) if centered else None,
-                   vmax= np.max(np.abs(matrix)) if centered else None)
+    kwargs = {}
+    if centered:
+        abs_max = float(np.max(np.abs(matrix)))
+        kwargs = {"vmin": -abs_max, "vmax": abs_max}
+    im = ax.imshow(matrix, cmap=cmap, aspect="equal", **kwargs)
+
     ax.set_xticks(range(3)); ax.set_xticklabels([l.upper() for l in LANGS])
     ax.set_yticks(range(3)); ax.set_yticklabels([l.upper() for l in LANGS])
     ax.set_xlabel("Wikipedia anchor language")
     ax.set_ylabel("Response language")
+
     for i in range(3):
         for j in range(3):
-            ax.text(j, i, f"{matrix[i, j]:+.3f}" if centered else f"{matrix[i, j]:.3f}",
-                    ha="center", va="center",
+            val = matrix[i, j]
+            ci  = ci_matrix[i, j]
+            fmt = f"{val:+.3f}" if centered else f"{val:.3f}"
+            txt = f"{fmt}\n±{ci:.3f}"
+            ax.text(j, i, txt, ha="center", va="center", fontsize=9,
                     color="white" if not centered else "black")
     plt.colorbar(im, ax=ax, shrink=0.85)
     ax.set_title(title, fontsize=10)
@@ -133,49 +174,67 @@ def main():
     responses = load_response_embeddings(args.responses_root, args.model, args.event)
     anchors   = load_anchor_embeddings(args.wiki_root, ANCHOR_SLUGS)
 
+    sample_counts = {lang: [] for lang in LANGS}
+    for (qid, lang), vecs in responses.items():
+        sample_counts[lang].append(len(vecs))
+    print(f"Samples per language (min/median/max across {len(ANCHOR_SLUGS)} questions):")
+    for lang in LANGS:
+        arr = sample_counts[lang]
+        print(f"  {lang}: min={min(arr)} median={int(np.median(arr))} max={max(arr)}")
+
     # ---- Slice 1 --------------------------------------------------------
+    print("\n" + "=" * 72)
+    print("Slice 1: response-to-response cosine per question (mean ± 95% CI)")
     print("=" * 72)
-    print("Slice 1: response-to-response cosine (higher = more similar framing)")
-    print("=" * 72)
-    df1 = slice1_response_similarity(responses)
-    summary = df1.drop(columns=["qid"]).agg(["mean", "std"]).round(4)
+    df1 = slice1_per_question(responses)
     print(df1.round(4).to_string(index=False))
-    print("\n-- aggregate --")
-    print(summary.to_string())
-    df1.to_csv(out_dir / "response_similarity.csv", index=False)
+
+    agg1 = slice1_aggregate(df1)
+    print("\n-- aggregate across questions (each question = 1 observation) --")
+    print(agg1.round(4).to_string(index=False))
+
+    df1.to_csv(out_dir / "response_similarity_per_question.csv", index=False)
+    agg1.to_csv(out_dir / "response_similarity_aggregate.csv", index=False)
 
     # ---- Slice 2 --------------------------------------------------------
     print("\n" + "=" * 72)
-    print("Slice 2: response vs Wikipedia anchor (mean cosine across "
-          f"{len(ANCHOR_SLUGS)} anchored questions)")
+    print(f"Slice 2: response vs Wikipedia anchor ({len(ANCHOR_SLUGS)} questions × N samples)")
     print("=" * 72)
-    anchored_qids = sorted(ANCHOR_SLUGS.keys())
-    df2, mean_matrix = slice2_anchor_heatmap(responses, anchors, anchored_qids)
-    print(df2.round(4).to_string(index=False))
+    qids = sorted(ANCHOR_SLUGS.keys())
+    cells = slice2_cells(responses, anchors, qids)
 
-    mm_df = pd.DataFrame(mean_matrix,
-                         index=[f"resp_{l}" for l in LANGS],
-                         columns=[f"wiki_{l}" for l in LANGS])
-    print("\n-- mean matrix (rows=response lang, cols=anchor lang) --")
+    mean_matrix = matrix_from_cells(cells, np.mean)
+    ci_matrix   = matrix_from_cells(cells, ci95)
+    n_matrix    = matrix_from_cells(cells, len)
+
+    labels_row = [f"resp_{l}" for l in LANGS]
+    labels_col = [f"wiki_{l}" for l in LANGS]
+    mm_df = pd.DataFrame(mean_matrix, index=labels_row, columns=labels_col)
+    ci_df = pd.DataFrame(ci_matrix,   index=labels_row, columns=labels_col)
+    n_df  = pd.DataFrame(n_matrix.astype(int), index=labels_row, columns=labels_col)
+
+    print("\n-- mean matrix --")
     print(mm_df.round(4))
+    print("\n-- 95% CI half-widths --")
+    print(ci_df.round(4))
+    print("\n-- n per cell --")
+    print(n_df)
 
     row_centered = mean_matrix - mean_matrix.mean(axis=1, keepdims=True)
-    rc_df = pd.DataFrame(row_centered,
-                         index=[f"resp_{l}" for l in LANGS],
-                         columns=[f"wiki_{l}" for l in LANGS])
-    print("\n-- row-centered (which anchor is each response language closest to, "
-          "controlling for absolute scale?) --")
+    rc_df = pd.DataFrame(row_centered, index=labels_row, columns=labels_col)
+    print("\n-- row-centered (ingroup pull +, outgroup -) --")
     print(rc_df.round(4))
 
-    df2.to_csv(out_dir / "anchor_per_question.csv", index=False)
     mm_df.to_csv(out_dir / "anchor_heatmap_mean.csv")
+    ci_df.to_csv(out_dir / "anchor_heatmap_ci95.csv")
     rc_df.to_csv(out_dir / "anchor_heatmap_rowcentered.csv")
+    n_df.to_csv(out_dir / "anchor_heatmap_n.csv")
 
-    plot_heatmap(mean_matrix,
+    plot_heatmap(mean_matrix, ci_matrix,
                  out_dir / "anchor_heatmap.png",
                  f"{args.model} | {args.event}\n"
-                 f"Response vs Wiki anchor — mean cosine ({len(anchored_qids)} questions)")
-    plot_heatmap(row_centered,
+                 f"Response vs Wiki anchor — mean cosine ± 95% CI")
+    plot_heatmap(row_centered, ci_matrix,
                  out_dir / "anchor_heatmap_rowcentered.png",
                  f"{args.model} | {args.event}\n"
                  "Row-centered: ingroup pull (+) vs outgroup (-)",
