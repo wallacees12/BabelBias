@@ -32,8 +32,13 @@ Receipts/
 # Personal documents — sensitive, never commit
 Registration.pdf
 
-# In-flight experiment run logs (reports go in Experiments/*.md, not *.log)
-Experiments/*.log
+# Private thesis context — kept locally, never published
+CLAUDE.md
+Code/CLAUDE.md
+Experiments.md
+Experiments/
+Current_Overview.md
+Presentations/
 
 # Backup / intermediate artifacts
 *.orig
