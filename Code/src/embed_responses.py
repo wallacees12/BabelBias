@@ -14,6 +14,7 @@ from pathlib import Path
 from babelbias.config import EMBEDDING_MODEL
 from babelbias.embedding import embed_short
 from babelbias.paths import LLM_EMBEDDINGS_DIR, LLM_RESPONSES_DIR
+from babelbias.refusal import is_refusal
 
 
 def run(model: str, event: str, in_root: Path, out_root: Path):
@@ -27,7 +28,7 @@ def run(model: str, event: str, in_root: Path, out_root: Path):
     files = sorted(p for p in in_dir.iterdir() if p.suffix == ".json")
     print(f"Embedding {len(files)} responses from {in_dir}...")
 
-    made = skipped = 0
+    made = skipped = refusals = 0
     for src in files:
         out_path = out_dir / src.name
         if out_path.exists():
@@ -36,6 +37,10 @@ def run(model: str, event: str, in_root: Path, out_root: Path):
 
         with open(src) as f:
             rec = json.load(f)
+
+        refusal = is_refusal(rec)
+        if refusal:
+            refusals += 1
 
         vec = embed_short(rec.get("response_text", ""))
         if vec is None:
@@ -49,6 +54,8 @@ def run(model: str, event: str, in_root: Path, out_root: Path):
                 "qid": rec["qid"],
                 "theme": rec.get("theme"),
                 "language": rec["language"],
+                "finish_reason": rec.get("finish_reason"),
+                "refusal": refusal,
                 "embedding_model": EMBEDDING_MODEL,
                 "embedding": vec,
                 "type": "llm_response",
@@ -57,7 +64,8 @@ def run(model: str, event: str, in_root: Path, out_root: Path):
         made += 1
         time.sleep(0.05)
 
-    print(f"Done. {made} new embeddings, {skipped} already existed.")
+    print(f"Done. {made} new embeddings, {skipped} already existed, "
+          f"{refusals} flagged as refusals/content-filter.")
 
 
 def main():

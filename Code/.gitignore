@@ -39,3 +39,5 @@ env/
 # Data (optional, but good for raw data)
 data/raw/*.json
 data/processed/*.json
+
+Reciepts

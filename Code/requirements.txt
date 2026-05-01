@@ -5,10 +5,12 @@ requests
 openai
 anthropic
 google-genai
+gigachat
 scikit-learn
 numpy
 openpyxl
 tiktoken
 matplotlib
+seaborn
 marimo
 plotly

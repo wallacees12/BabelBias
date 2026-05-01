@@ -26,6 +26,19 @@ __marimo__/
 # Generated pipeline data (~360 MB; managed outside git)
 data/
 
+# Personal expenses — not shared
+Receipts/
+
+# Personal documents — sensitive, never commit
+Registration.pdf
+
+# In-flight experiment run logs (reports go in Experiments/*.md, not *.log)
+Experiments/*.log
+
+# Backup / intermediate artifacts
+*.orig
+*.orig.*
+
 # External Papers folder (symlink to iCloud-synced Obsidian vault)
 Papers
 

@@ -26,6 +26,11 @@ import numpy as np
 import pandas as pd
 
 from babelbias.config import DEFAULT_LANGS
+from babelbias.debias import (
+    language_subspace_basis,
+    load_control_embeddings,
+    project_out,
+)
 from babelbias.paths import ANALYSIS_DIR, LLM_EMBEDDINGS_DIR, PROCESSED_LEADS_DIR
 
 LANGS = list(DEFAULT_LANGS)
@@ -54,17 +59,30 @@ def ci95(values: list[float] | np.ndarray) -> float:
     return 1.96 * float(np.std(values, ddof=1)) / np.sqrt(len(values))
 
 
-def load_response_embeddings(root: Path, model: str, event: str) -> dict:
-    """Return {(qid, lang): [vec, vec, ...]} across all repeat samples."""
+def load_response_embeddings(root: Path, model: str, event: str,
+                              skip_refusals: bool = True) -> tuple[dict, dict]:
+    """Return (embeddings, refusal_counts).
+
+    embeddings: {(qid, lang): [vec, ...]} — refusal records excluded when
+                skip_refusals (default; matches what the analysis wants).
+    refusal_counts: {(qid, lang): int} — count of refusals per cell, for
+                the report. Cells that never refused don't appear.
+    """
     d = root / model / event
     out = defaultdict(list)
+    refusals: defaultdict[tuple[str, str], int] = defaultdict(int)
     for p in sorted(d.iterdir()):
         if p.suffix != ".json":
             continue
         with open(p) as f:
             rec = json.load(f)
-        out[(rec["qid"], rec["language"])].append(np.asarray(rec["embedding"]))
-    return out
+        key = (rec["qid"], rec["language"])
+        if rec.get("refusal"):
+            refusals[key] += 1
+            if skip_refusals:
+                continue
+        out[key].append(np.asarray(rec["embedding"]))
+    return out, dict(refusals)
 
 
 def load_anchor_embeddings(wiki_root: Path, slugs: dict[str, str]) -> dict:
@@ -166,13 +184,46 @@ def main():
     ap.add_argument("--responses-root", type=Path, default=LLM_EMBEDDINGS_DIR)
     ap.add_argument("--wiki-root",      type=Path, default=PROCESSED_LEADS_DIR)
     ap.add_argument("--out-root",       type=Path, default=ANALYSIS_DIR)
+    ap.add_argument("--debias", action="store_true",
+                    help="Project out the language subspace (estimated from "
+                         "controls only) from both responses and anchors.")
     args = ap.parse_args()
 
-    out_dir = args.out_root / args.model / args.event
+    run_tag = f"{args.event}_debiased" if args.debias else args.event
+    out_dir = args.out_root / args.model / run_tag
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    responses = load_response_embeddings(args.responses_root, args.model, args.event)
-    anchors   = load_anchor_embeddings(args.wiki_root, ANCHOR_SLUGS)
+    responses, refusals = load_response_embeddings(
+        args.responses_root, args.model, args.event
+    )
+    anchors = load_anchor_embeddings(args.wiki_root, ANCHOR_SLUGS)
+
+    if refusals:
+        total_ref = sum(refusals.values())
+        n_cells = len({k for k in refusals})
+        print(f"\n⚠ Refusals/content-filter detected: {total_ref} samples across "
+              f"{n_cells} (qid, lang) cells — excluded from cosine analysis.")
+        ref_rows = sorted(
+            ({"qid": q, "lang": l, "n_refusals": n} for (q, l), n in refusals.items()),
+            key=lambda r: (r["qid"], r["lang"]),
+        )
+        ref_df = pd.DataFrame(ref_rows)
+        print(ref_df.to_string(index=False))
+        ref_df.to_csv(out_dir / "refusals_per_cell.csv", index=False)
+    else:
+        ref_df = pd.DataFrame(columns=["qid", "lang", "n_refusals"])
+
+    if args.debias:
+        ctrl_X, ctrl_langs = load_control_embeddings(args.wiki_root, LANGS)
+        basis = language_subspace_basis(ctrl_X, ctrl_langs, LANGS)
+        print(f"\nDebiasing: projecting out {basis.shape[0]} language "
+              f"direction(s) learned from {len(ctrl_X)} control articles "
+              f"across {LANGS}.")
+
+        for key in list(anchors.keys()):
+            anchors[key] = project_out(anchors[key][None, :], basis)[0]
+        for key in list(responses.keys()):
+            responses[key] = [project_out(v[None, :], basis)[0] for v in responses[key]]
 
     sample_counts = {lang: [] for lang in LANGS}
     for (qid, lang), vecs in responses.items():
@@ -230,13 +281,14 @@ def main():
     rc_df.to_csv(out_dir / "anchor_heatmap_rowcentered.csv")
     n_df.to_csv(out_dir / "anchor_heatmap_n.csv")
 
+    debias_tag = "  (debiased)" if args.debias else ""
     plot_heatmap(mean_matrix, ci_matrix,
                  out_dir / "anchor_heatmap.png",
-                 f"{args.model} | {args.event}\n"
+                 f"{args.model} | {args.event}{debias_tag}\n"
                  f"Response vs Wiki anchor — mean cosine ± 95% CI")
     plot_heatmap(row_centered, ci_matrix,
                  out_dir / "anchor_heatmap_rowcentered.png",
-                 f"{args.model} | {args.event}\n"
+                 f"{args.model} | {args.event}{debias_tag}\n"
                  "Row-centered: ingroup pull (+) vs outgroup (-)",
                  centered=True)
     print(f"\nSaved CSVs + PNGs to {out_dir}")

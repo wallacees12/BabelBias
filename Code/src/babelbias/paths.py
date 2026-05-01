@@ -19,6 +19,7 @@ PROCESSED_LEADS_DIR = RU_ROOT / "processed_leads"
 LLM_RESPONSES_DIR = RU_ROOT / "llm_responses"
 LLM_EMBEDDINGS_DIR = RU_ROOT / "llm_embeddings"
 ANALYSIS_DIR = RU_ROOT / "analysis"
+ANALYSIS_FULL_DIR = RU_ROOT / "analysis_full"
 METADATA_DIR = RU_ROOT / "metadata"
 
 LINKS_TO_REVIEW_CSV = RU_ROOT / "1hop_links_to_review.csv"
