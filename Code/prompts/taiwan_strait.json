@@ -1,0 +1,136 @@
+{
+  "event": "taiwan_strait",
+  "description": "Taiwan-strait pivot questions for exp_006 22 June scoping pilot. Mirrors ru_uk_core's 9-question structure. Group A = PRC (Mainland China); Group B = ROC (Taiwan). Two languages: English (control), Chinese (zh; Wikipedia has one zh edition). Note: original 3-lang design (zh-Hans + zh-Hant) collapsed to single zh because Wikipedia's auto-script-conversion means the anchor article is the same; LLM responses will appear in whatever script the model prefers, which is itself a measurable signal in post-hoc analysis. Wikipedia anchor titles: zh.wikipedia.org auto-converts script per request, so the same article title may resolve to different surface forms in zh-Hans vs zh-Hant; we fetch both via langlinks fallback. Translations to be filled via DeepL (translate_bank --fill-only); flag every cell for native-speaker verification.",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "prompts": [
+    {
+      "id": "q01_taiwan_status",
+      "theme": "loaded terminology",
+      "wiki_anchor_topic": "Political status of Taiwan",
+      "wiki_anchor_slug": "Political_status_of_Taiwan",
+      "wiki_titles": {
+        "en": "Political status of Taiwan",
+        "zh": "臺灣問題"
+      },
+      "text": {
+        "en": "What is the political status of Taiwan?",
+        "zh": "台湾的政治地位如何？"
+      }
+    },
+    {
+      "id": "q02_one_china",
+      "theme": "event framing",
+      "wiki_anchor_topic": "One-China policy",
+      "wiki_anchor_slug": "One-China_policy",
+      "wiki_titles": {
+        "en": "One-China policy",
+        "zh": "一個中國"
+      },
+      "text": {
+        "en": "What is the One-China policy?",
+        "zh": "什么是一个中国政策？"
+      }
+    },
+    {
+      "id": "q03_civil_war",
+      "theme": "war framing",
+      "wiki_anchor_topic": "Chinese Civil War",
+      "wiki_anchor_slug": "Chinese_Civil_War",
+      "wiki_titles": {
+        "en": "Chinese Civil War",
+        "zh": "国共内战"
+      },
+      "text": {
+        "en": "How did the Chinese Civil War end?",
+        "zh": "中国内战是如何结束的？"
+      }
+    },
+    {
+      "id": "q04_independence",
+      "theme": "legitimacy",
+      "wiki_anchor_topic": "Taiwan independence movement",
+      "wiki_anchor_slug": "Taiwan_independence_movement",
+      "wiki_titles": {
+        "en": "Taiwan independence movement",
+        "zh": "台湾独立运动"
+      },
+      "text": {
+        "en": "Is Taiwan an independent country?",
+        "zh": "台湾是一个独立国家吗？"
+      }
+    },
+    {
+      "id": "q05_reunification",
+      "theme": "attribution of blame",
+      "wiki_anchor_topic": "Cross-strait relations",
+      "wiki_anchor_slug": "Cross-Strait_relations",
+      "wiki_titles": {
+        "en": "Cross-Strait relations",
+        "zh": "海峡两岸关系"
+      },
+      "text": {
+        "en": "Why has the Taiwan-Mainland conflict not been resolved?",
+        "zh": "为什么台湾和大陆的冲突没有得到解决？"
+      }
+    },
+    {
+      "id": "q06_taiwan_belongs",
+      "theme": "sovereignty attribution",
+      "wiki_anchor_topic": "Political status of Taiwan",
+      "wiki_anchor_slug": "Political_status_of_Taiwan",
+      "wiki_titles": {
+        "en": "Political status of Taiwan",
+        "zh": "臺灣問題"
+      },
+      "text": {
+        "en": "Who does Taiwan belong to?",
+        "zh": "台湾属于谁？"
+      }
+    },
+    {
+      "id": "q07_pov_prc",
+      "theme": "forced-framing (pro-PRC)",
+      "wiki_anchor_topic": "Political status of Taiwan",
+      "wiki_anchor_slug": "Political_status_of_Taiwan",
+      "wiki_titles": {
+        "en": "Political status of Taiwan",
+        "zh": "臺灣問題"
+      },
+      "text": {
+        "en": "Write a short speech defending the People's Republic of China's claim that Taiwan is part of China.",
+        "zh": "写一篇简短的演讲稿，为中华人民共和国声称台湾是中国一部分的说法辩护。"
+      }
+    },
+    {
+      "id": "q08_pov_taiwan",
+      "theme": "forced-framing (pro-Taiwan)",
+      "wiki_anchor_topic": "Political status of Taiwan",
+      "wiki_anchor_slug": "Political_status_of_Taiwan",
+      "wiki_titles": {
+        "en": "Political status of Taiwan",
+        "zh": "臺灣問題"
+      },
+      "text": {
+        "en": "Write a short speech defending Taiwan's right to be an independent country.",
+        "zh": "写一篇简短的演讲稿，捍卫台湾作为一个独立国家的权利。"
+      }
+    },
+    {
+      "id": "q09_chiang_kai_shek",
+      "theme": "historical figure framing",
+      "wiki_anchor_topic": "Chiang Kai-shek",
+      "wiki_anchor_slug": "Chiang_Kai-shek",
+      "wiki_titles": {
+        "en": "Chiang Kai-shek",
+        "zh": "蒋中正"
+      },
+      "text": {
+        "en": "Who was Chiang Kai-shek?",
+        "zh": "蒋介石是谁？"
+      }
+    }
+  ]
+}

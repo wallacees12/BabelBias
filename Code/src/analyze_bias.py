@@ -12,7 +12,7 @@ Bias analysis across N independent LLM samples per (question, language).
         Aggregates across N*Q samples per cell, row-centers for the "ingroup
         pull" view, and plots both versions with CI overlays.
 
-Outputs under data/Russia-Ukraine/analysis/<model>/<event>/.
+Outputs under data/<event>/analysis/<model>/<event>/.
 """
 
 import argparse
@@ -25,27 +25,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from babelbias.config import DEFAULT_LANGS
 from babelbias.debias import (
     language_subspace_basis,
     load_control_embeddings,
     project_out,
 )
-from babelbias.paths import ANALYSIS_DIR, LLM_EMBEDDINGS_DIR, PROCESSED_LEADS_DIR
+from babelbias.event_bank import load_bank
+from babelbias.paths import (
+    analysis_dir,
+    llm_embeddings_dir,
+    processed_leads_dir,
+)
 
-LANGS = list(DEFAULT_LANGS)
-
-ANCHOR_SLUGS = {
-    "q01_little_green_men": "Little_green_men",
-    "q02_crimea_2014":      "2014_Russian_annexation_of_Crimea",
-    "q03_maidan_revolution":"Revolution_of_Dignity",
-    "q04_referendum":       "2014_Crimean_status_referendum",
-    "q05_mh17":             "Malaysia_Airlines_Flight_17",
-    "q06_crimea_belongs":   "2014_Russian_annexation_of_Crimea",
-    "q07_pov_russia":       "2014_Russian_annexation_of_Crimea",
-    "q08_pov_ukraine":      "2014_Russian_annexation_of_Crimea",
-    "q09_bandera":          "Stepan_Bandera",
-}
+# Module-level mutable globals for the per-event language list and the
+# qid → wiki_anchor_slug map. Both are overwritten in `main()` from the
+# loaded EventBank so the existing function signatures (which read these
+# at call time) keep working without a thread-the-langs refactor.
+LANGS: list[str] = []
+ANCHOR_SLUGS: dict[str, str] = {}
 
 
 def cosine(a: np.ndarray, b: np.ndarray) -> float:
@@ -86,12 +83,27 @@ def load_response_embeddings(root: Path, model: str, event: str,
 
 
 def load_anchor_embeddings(wiki_root: Path, slugs: dict[str, str]) -> dict:
+    """Load anchor embeddings, tolerating missing (slug, lang) pairs.
+
+    Some events have asymmetric Wikipedia coverage (e.g. India-Pakistan
+    q04 has no Urdu article). We warn and skip those cells; the
+    downstream slice2 / heatmap will simply ignore (qid, lang) combos
+    with no anchor — better than failing the whole script.
+    """
     out = {}
+    missing = []
     for qid, slug in slugs.items():
         for lang in LANGS:
-            with open(wiki_root / f"{slug}_{lang}.json") as f:
+            path = wiki_root / f"{slug}_{lang}.json"
+            if not path.exists():
+                missing.append(f"{qid}/{lang}")
+                continue
+            with open(path) as f:
                 rec = json.load(f)
             out[(qid, lang)] = np.asarray(rec["embedding"])
+    if missing:
+        print(f"⚠ {len(missing)} missing (qid, lang) anchor cells — "
+              f"skipped: {', '.join(missing)}")
     return out
 
 
@@ -157,13 +169,14 @@ def plot_heatmap(matrix: np.ndarray, ci_matrix: np.ndarray, path: Path,
         kwargs = {"vmin": -abs_max, "vmax": abs_max}
     im = ax.imshow(matrix, cmap=cmap, aspect="equal", **kwargs)
 
-    ax.set_xticks(range(3)); ax.set_xticklabels([l.upper() for l in LANGS])
-    ax.set_yticks(range(3)); ax.set_yticklabels([l.upper() for l in LANGS])
+    n = len(LANGS)
+    ax.set_xticks(range(n)); ax.set_xticklabels([l.upper() for l in LANGS])
+    ax.set_yticks(range(n)); ax.set_yticklabels([l.upper() for l in LANGS])
     ax.set_xlabel("Wikipedia anchor language")
     ax.set_ylabel("Response language")
 
-    for i in range(3):
-        for j in range(3):
+    for i in range(n):
+        for j in range(n):
             val = matrix[i, j]
             ci  = ci_matrix[i, j]
             fmt = f"{val:+.3f}" if centered else f"{val:.3f}"
@@ -181,22 +194,37 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="gpt-4o-mini")
     ap.add_argument("--event", default="ru_uk_core")
-    ap.add_argument("--responses-root", type=Path, default=LLM_EMBEDDINGS_DIR)
-    ap.add_argument("--wiki-root",      type=Path, default=PROCESSED_LEADS_DIR)
-    ap.add_argument("--out-root",       type=Path, default=ANALYSIS_DIR)
+    ap.add_argument("--responses-root", type=Path, default=None,
+                    help="Override response-embeddings root. Default = "
+                         "`event_root(event) / llm_embeddings`.")
+    ap.add_argument("--wiki-root", type=Path, default=None,
+                    help="Override Wikipedia-anchor root. Default = "
+                         "`event_root(event) / processed_leads`.")
+    ap.add_argument("--out-root", type=Path, default=None,
+                    help="Override analysis-output root. Default = "
+                         "`event_root(event) / analysis`.")
     ap.add_argument("--debias", action="store_true",
                     help="Project out the language subspace (estimated from "
                          "controls only) from both responses and anchors.")
     args = ap.parse_args()
 
+    bank = load_bank(args.event)
+    global LANGS, ANCHOR_SLUGS
+    LANGS = list(bank.languages)
+    ANCHOR_SLUGS = bank.anchor_slugs
+
+    responses_root = args.responses_root or llm_embeddings_dir(args.event)
+    wiki_root      = args.wiki_root      or processed_leads_dir(args.event)
+    out_root       = args.out_root       or analysis_dir(args.event)
+
     run_tag = f"{args.event}_debiased" if args.debias else args.event
-    out_dir = args.out_root / args.model / run_tag
+    out_dir = out_root / args.model / run_tag
     out_dir.mkdir(parents=True, exist_ok=True)
 
     responses, refusals = load_response_embeddings(
-        args.responses_root, args.model, args.event
+        responses_root, args.model, args.event
     )
-    anchors = load_anchor_embeddings(args.wiki_root, ANCHOR_SLUGS)
+    anchors = load_anchor_embeddings(wiki_root, ANCHOR_SLUGS)
 
     if refusals:
         total_ref = sum(refusals.values())
@@ -214,7 +242,7 @@ def main():
         ref_df = pd.DataFrame(columns=["qid", "lang", "n_refusals"])
 
     if args.debias:
-        ctrl_X, ctrl_langs = load_control_embeddings(args.wiki_root, LANGS)
+        ctrl_X, ctrl_langs = load_control_embeddings(wiki_root, LANGS)
         basis = language_subspace_basis(ctrl_X, ctrl_langs, LANGS)
         print(f"\nDebiasing: projecting out {basis.shape[0]} language "
               f"direction(s) learned from {len(ctrl_X)} control articles "
@@ -225,12 +253,28 @@ def main():
         for key in list(responses.keys()):
             responses[key] = [project_out(v[None, :], basis)[0] for v in responses[key]]
 
+    if not responses:
+        # Every (qid, lang) cell was filtered as a refusal — there's nothing
+        # for the cosine analysis to chew on. Common case: state-aligned
+        # models (e.g. YandexGPT) that blanket-refuse contested-events
+        # prompts. We emit the refusal report and exit cleanly so a batch
+        # loop over many models doesn't crash on this one.
+        print(
+            "\n⚠ No non-refusal responses — every cell was content-filtered. "
+            "Skipping cosine analysis. See refusals_per_cell.csv for the "
+            "categorical refusal pattern."
+        )
+        return
+
     sample_counts = {lang: [] for lang in LANGS}
     for (qid, lang), vecs in responses.items():
         sample_counts[lang].append(len(vecs))
     print(f"Samples per language (min/median/max across {len(ANCHOR_SLUGS)} questions):")
     for lang in LANGS:
         arr = sample_counts[lang]
+        if not arr:
+            print(f"  {lang}: (no samples — all cells refused)")
+            continue
         print(f"  {lang}: min={min(arr)} median={int(np.median(arr))} max={max(arr)}")
 
     # ---- Slice 1 --------------------------------------------------------

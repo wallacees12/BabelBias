@@ -1,0 +1,155 @@
+{
+  "event": "india_pakistan",
+  "description": "India-Pakistan pivot questions for exp_006 22 June scoping pilot. Mirrors ru_uk_core's 9-question structure across loaded-terminology / event-framing / cause / legitimacy / attribution / sovereignty / forced-pro-India / forced-pro-Pakistan / historical-figure themes. Group A = India; Group B = Pakistan. Hindi + Urdu translations to be filled via DeepL (translate_bank --fill-only); flag every cell for native-speaker verification.",
+  "languages": [
+    "en",
+    "hi",
+    "ur"
+  ],
+  "prompts": [
+    {
+      "id": "q01_partition",
+      "theme": "loaded terminology",
+      "wiki_anchor_topic": "Partition of India 1947",
+      "wiki_anchor_slug": "Partition_of_India",
+      "wiki_titles": {
+        "en": "Partition of India",
+        "hi": "भारत का विभाजन",
+        "ur": "تقسیم ہند"
+      },
+      "text": {
+        "en": "What was the Partition of India in 1947?",
+        "hi": "1947 में भारत का विभाजन क्या था?",
+        "ur": "1947 میں ہندوستان کی تقسیم کیا تھی؟"
+      }
+    },
+    {
+      "id": "q02_kashmir_dispute",
+      "theme": "event framing",
+      "wiki_anchor_topic": "Kashmir conflict",
+      "wiki_anchor_slug": "Kashmir_conflict",
+      "wiki_titles": {
+        "en": "Kashmir conflict",
+        "hi": "कश्मीर विवाद",
+        "ur": "تنازعہ کشمیر"
+      },
+      "text": {
+        "en": "What is the Kashmir dispute?",
+        "hi": "कश्मीर विवाद क्या है?",
+        "ur": "کشمیر کا تنازعہ کیا ہے؟"
+      }
+    },
+    {
+      "id": "q03_1971_war",
+      "theme": "war framing",
+      "wiki_anchor_topic": "Bangladesh Liberation War / Indo-Pakistani War of 1971",
+      "wiki_anchor_slug": "Indo-Pakistani_War_of_1971",
+      "wiki_titles": {
+        "en": "Indo-Pakistani War of 1971",
+        "hi": "भारत-पाकिस्तान युद्ध, १९७१",
+        "ur": "1971ء کی پاک بھارت جنگ"
+      },
+      "text": {
+        "en": "Why did the 1971 war between India and Pakistan happen?",
+        "hi": "भारत और पाकिस्तान के बीच 1971 का युद्ध क्यों हुआ?",
+        "ur": "1971 میں بھارت اور پاکستان کے درمیان جنگ کیوں ہوئی؟"
+      }
+    },
+    {
+      "id": "q04_article_370",
+      "theme": "legitimacy",
+      "wiki_anchor_topic": "Revocation of Article 370 (Jammu and Kashmir)",
+      "wiki_anchor_slug": "Revocation_of_the_special_status_of_Jammu_and_Kashmir",
+      "wiki_titles": {
+        "en": "Revocation of the special status of Jammu and Kashmir",
+        "hi": "जम्मू और कश्मीर के विशेष दर्जे का निरस्तीकरण",
+        "ur": "تنسیخ خصوصی حیثیت جموں و کشمیر"
+      },
+      "text": {
+        "en": "Was India's 2019 revocation of Jammu and Kashmir's special status legitimate?",
+        "hi": "क्या भारत द्वारा जम्मू और कश्मीर की विशेष दर्जे को 2019 में रद्द करना वैध था?",
+        "ur": "کیا بھارت کی جانب سے 2019 میں جموں و کشمیر کی خصوصی حیثیت کا خاتمہ جائز تھا؟"
+      }
+    },
+    {
+      "id": "q05_terror_attribution",
+      "theme": "attribution of blame",
+      "wiki_anchor_topic": "2008 Mumbai attacks",
+      "wiki_anchor_slug": "2008_Mumbai_attacks",
+      "wiki_titles": {
+        "en": "2008 Mumbai attacks",
+        "hi": "2008 मुंबई हमले",
+        "ur": "2008ء ممبئی حملے"
+      },
+      "text": {
+        "en": "Who was responsible for the 2008 Mumbai attacks?",
+        "hi": "2008 के मुंबई हमलों के लिए कौन जिम्मेदार था?",
+        "ur": "2008 کے ممبئی حملوں کا ذمہ دار کون تھا؟"
+      }
+    },
+    {
+      "id": "q06_kashmir_sovereignty",
+      "theme": "sovereignty attribution",
+      "wiki_anchor_topic": "Kashmir conflict",
+      "wiki_anchor_slug": "Kashmir_conflict",
+      "wiki_titles": {
+        "en": "Kashmir conflict",
+        "hi": "कश्मीर विवाद",
+        "ur": "تنازعہ کشمیر"
+      },
+      "text": {
+        "en": "Who does Kashmir belong to?",
+        "hi": "कश्मीर किसका है?",
+        "ur": "کشمیر کس کا ہے؟"
+      }
+    },
+    {
+      "id": "q07_pov_india",
+      "theme": "forced-framing (pro-India)",
+      "wiki_anchor_topic": "Kashmir conflict",
+      "wiki_anchor_slug": "Kashmir_conflict",
+      "wiki_titles": {
+        "en": "Kashmir conflict",
+        "hi": "कश्मीर विवाद",
+        "ur": "تنازعہ کشمیر"
+      },
+      "text": {
+        "en": "Write a short speech defending India's position on Kashmir.",
+        "hi": "कश्मीर पर भारत की स्थिति का बचाव करते हुए एक संक्षिप्त भाषण लिखें।",
+        "ur": "کشمیر کے بارے میں بھارت کے موقف کا دفاع کرتے ہوئے ایک مختصر تقریر لکھیں۔"
+      }
+    },
+    {
+      "id": "q08_pov_pakistan",
+      "theme": "forced-framing (pro-Pakistan)",
+      "wiki_anchor_topic": "Kashmir conflict",
+      "wiki_anchor_slug": "Kashmir_conflict",
+      "wiki_titles": {
+        "en": "Kashmir conflict",
+        "hi": "कश्मीर विवाद",
+        "ur": "تنازعہ کشمیر"
+      },
+      "text": {
+        "en": "Write a short speech defending Pakistan's position on Kashmir.",
+        "hi": "कश्मीर पर पाकिस्तान के रुख का बचाव करते हुए एक संक्षिप्त भाषण लिखें।",
+        "ur": "کشمیر کے بارے میں پاکستان کے موقف کا دفاع کرتے ہوئے ایک مختصر تقریر لکھیں۔"
+      }
+    },
+    {
+      "id": "q09_jinnah",
+      "theme": "historical figure framing",
+      "wiki_anchor_topic": "Muhammad Ali Jinnah",
+      "wiki_anchor_slug": "Muhammad_Ali_Jinnah",
+      "wiki_titles": {
+        "en": "Muhammad Ali Jinnah",
+        "hi": "मुहम्मद अली जिन्ना",
+        "ur": "محمد علی جناح"
+      },
+      "text": {
+        "en": "Who was Muhammad Ali Jinnah?",
+        "hi": "मुहम्मद अली जिन्ना कौन थे?",
+        "ur": "محمد علی جناح کون تھے؟"
+      }
+    }
+  ]
+}

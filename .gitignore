@@ -60,3 +60,4 @@ Papers
 
 # Claude Code per-machine settings (settings.json is shared, .local.json isn't)
 .claude/settings.local.json
+*.json.bak

@@ -23,7 +23,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from babelbias.paths import ENV_PATH, LLM_RESPONSES_DIR, PROMPTS_DIR
+from babelbias.event_bank import load_bank
+from babelbias.paths import ENV_PATH, llm_responses_dir
 
 load_dotenv(ENV_PATH)
 
@@ -47,16 +48,37 @@ PRICE_PER_1M = {
     "glm-4.5-air":       {"in": 0.20, "out": 1.10},
     "glm-4.5-flash":     {"in": 0.00, "out": 0.00},
     "glm-4.7-flash":     {"in": 0.00, "out": 0.00},
+    # Cohere
+    "c4ai-aya-expanse-32b":         {"in": 0.30, "out": 1.50},
+    "command-r7b-arabic-02-2025":   {"in": 0.10, "out": 0.30},
+    # Alibaba DashScope (Qwen LLMs)
+    "qwen-plus":                    {"in": 0.40, "out": 1.20},
+    # Baidu ERNIE (via OpenRouter)
+    "baidu/ernie-4.5-300b-a47b":    {"in": 0.40, "out": 1.20},
+    # AI21 Jamba
+    "jamba-mini-2-2026-01":         {"in": 0.20, "out": 0.40},
+    # Inception Mercury (diffusion via OpenRouter)
+    "mercury-2":                    {"in": 0.25, "out": 1.00},
+    # Yandex (refused on RU-UK; included for completeness)
+    "yandexgpt":                    {"in": 0.05, "out": 0.20},
+    # Local Ollama models — $0 marginal (own GPU)
+    "ollama:allam-7b":              {"in": 0.00, "out": 0.00},
+    "ollama:taide-llama3-8b":       {"in": 0.00, "out": 0.00},
 }
 
 
-def load_prompts(event: str) -> dict:
-    with open(PROMPTS_DIR / f"{event}.json") as f:
-        return json.load(f)
+def load_prompts(event: str):
+    """Load the event bank. Returns the typed `EventBank` object — the
+    legacy dict shape (`bank["prompts"]`, `bank["languages"]`) is no
+    longer used inside this module.
+    """
+    return load_bank(event)
 
 
 def provider_for(model: str) -> str:
     # Explicit aggregator prefixes — checked before the generic slash rule below.
+    if model.startswith("ollama:"):
+        return "ollama"
     if model.startswith("hf:"):
         return "hf"
     if model.startswith("together:"):
@@ -87,6 +109,8 @@ def provider_for(model: str) -> str:
         return "gigachat"
     if model.startswith("yandexgpt"):
         return "yandex"
+    if model.startswith("jamba"):
+        return "ai21"
     if model.startswith("mercury"):
         return "inception"
     raise ValueError(f"Unknown provider for model '{model}'")
@@ -164,6 +188,19 @@ def make_client(provider: str):
         from openai import OpenAI
         token = os.getenv("TOGETHERAI_API_KEY") or os.getenv("TOGETHER_API_KEY")
         return OpenAI(api_key=token, base_url="https://api.together.xyz/v1")
+    if provider == "ai21":
+        # AI21 (Tel Aviv, Jamba family). OpenAI-compat endpoint at
+        # api.ai21.com/studio/v1. Reads A121_API_KEY (typo'd convention in
+        # this repo's .env) with AI21_API_KEY as fallback.
+        from openai import OpenAI
+        token = os.getenv("A121_API_KEY") or os.getenv("AI21_API_KEY")
+        return OpenAI(api_key=token, base_url="https://api.ai21.com/studio/v1")
+    if provider == "ollama":
+        # Local Ollama daemon — OpenAI-compatible at http://localhost:11434/v1.
+        # No real auth, just a placeholder string. Use the `ollama:` prefix in
+        # --model; the prefix is stripped before forwarding to the daemon.
+        from openai import OpenAI
+        return OpenAI(api_key="ollama", base_url="http://localhost:11434/v1")
     raise ValueError(provider)
 
 
@@ -336,7 +373,7 @@ def call_llm(client, provider: str, model: str, prompt_text: str, max_tokens: in
         # cosine comparison stays consistent with non-thinking models.
         return call_openai_compat(client, model, prompt_text, max_tokens, temperature,
                                   extra_body={"thinking": {"type": "disabled"}})
-    if provider in ("deepseek", "grok", "qwen", "openrouter", "inception", "cohere"):
+    if provider in ("deepseek", "grok", "qwen", "openrouter", "inception", "cohere", "ai21"):
         return call_openai_compat(client, model, prompt_text, max_tokens, temperature)
     if provider == "hf":
         # Strip the "hf:" routing prefix; the upstream model ID is the bare HF id.
@@ -345,6 +382,11 @@ def call_llm(client, provider: str, model: str, prompt_text: str, max_tokens: in
     if provider == "together":
         # Strip the "together:" routing prefix; upstream wants the bare model id.
         bare = model[len("together:"):]
+        return call_openai_compat(client, bare, prompt_text, max_tokens, temperature)
+    if provider == "ollama":
+        # Strip the "ollama:" routing prefix; upstream is the local daemon's
+        # bare model name (e.g. "hf.co/inceptionai/Jais-2-8B-Chat-GGUF:Q4_K_M").
+        bare = model[len("ollama:"):]
         return call_openai_compat(client, bare, prompt_text, max_tokens, temperature)
     if provider == "gigachat":
         return call_gigachat(client, model, prompt_text, max_tokens, temperature)
@@ -371,14 +413,21 @@ def migrate_legacy_filenames(out_dir: Path) -> int:
     return renamed
 
 
-def run(event: str, model: str, languages: list[str], limit: int | None,
+def run(event: str, model: str, languages: list[str] | None, limit: int | None,
         max_tokens: int, temperature: float, repeats: int,
-        dry_run: bool, out_root: Path):
+        dry_run: bool, out_root: Path | None):
     bank = load_prompts(event)
-    prompts = bank["prompts"]
+    if languages is None:
+        languages = list(bank.languages)
+    prompts = list(bank.prompts)
     if limit is not None:
         prompts = prompts[:limit]
 
+    if out_root is None:
+        out_root = llm_responses_dir(event)
+    # Layout `<root>/<model>/<event>/` matches the pre-refactor RU-UK
+    # tree and what embed_responses expects, so it's preserved across
+    # the event-aware migration.
     out_dir = out_root / model / event
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -395,18 +444,18 @@ def run(event: str, model: str, languages: list[str], limit: int | None,
 
     for p in prompts:
         for lang in languages:
-            if lang not in p["text"]:
-                print(f"  skip: no {lang} translation for {p['id']}")
+            if lang not in p.text:
+                print(f"  skip: no {lang} translation for {p.id}")
                 continue
 
-            prompt_text = p["text"][lang]
+            prompt_text = p.text[lang]
             for i in range(repeats):
-                out_path = out_dir / f"{p['id']}_{lang}_r{i:02d}.json"
+                out_path = out_dir / f"{p.id}_{lang}_r{i:02d}.json"
                 if out_path.exists():
                     skipped += 1
                     continue
 
-                header = f"[{event}/{model}] {p['id']} ({lang}) r{i:02d}"
+                header = f"[{event}/{model}] {p.id} ({lang}) r{i:02d}"
 
                 if dry_run:
                     print(f"{header}  {prompt_text}")
@@ -422,8 +471,8 @@ def run(event: str, model: str, languages: list[str], limit: int | None,
                 record = {
                     "event": event,
                     "model": model,
-                    "qid": p["id"],
-                    "theme": p.get("theme"),
+                    "qid": p.id,
+                    "theme": p.theme,
                     "language": lang,
                     "repeat": i,
                     "temperature": temperature,
@@ -456,7 +505,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--event", default="ru_uk_core")
     ap.add_argument("--model", default="gpt-4o-mini")
-    ap.add_argument("--languages", default="en,ru,uk")
+    ap.add_argument("--languages", default=None,
+                    help="Comma-separated lang codes. Default = the bank's "
+                         "`languages` field (post-exp_006 schema).")
     ap.add_argument("--limit", type=int, default=None,
                     help="Only run the first N prompts (for smoke-testing).")
     ap.add_argument("--max-tokens", type=int, default=800)
@@ -464,13 +515,18 @@ def main():
     ap.add_argument("--repeats", type=int, default=1,
                     help="How many independent samples per (prompt, language).")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--out-root", type=Path, default=LLM_RESPONSES_DIR)
+    ap.add_argument("--out-root", type=Path, default=None,
+                    help="Override output root. Default = "
+                         "`event_root(event) / llm_responses` from babelbias.paths.")
     args = ap.parse_args()
+
+    languages = ([l.strip() for l in args.languages.split(",")]
+                 if args.languages else None)
 
     run(
         event=args.event,
         model=args.model,
-        languages=[l.strip() for l in args.languages.split(",")],
+        languages=languages,
         limit=args.limit,
         max_tokens=args.max_tokens,
         temperature=args.temperature,

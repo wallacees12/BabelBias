@@ -20,7 +20,7 @@ from pptx.util import Inches, Pt
 
 from babelbias.paths import PROJECT_ROOT
 
-DECK_DIR = PROJECT_ROOT / "Presentations" / "27 April"
+DECK_DIR = PROJECT_ROOT / "Presentations" / "2026-04-27"
 BACKUP = DECK_DIR / "Monday 27th April.backup.pptx"
 DECK = DECK_DIR / "Monday 27th April.pptx"
 FIGS = PROJECT_ROOT / "Presentations" / "figures"

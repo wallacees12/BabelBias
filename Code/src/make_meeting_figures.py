@@ -22,6 +22,7 @@ import pandas as pd
 import seaborn as sns
 
 from babelbias.config import DEFAULT_LANGS
+from babelbias.palette import MODEL_COLORS, figure_palette_legend
 from babelbias.paths import (
     ANALYSIS_DIR,
     ANALYSIS_FULL_DIR,
@@ -47,22 +48,32 @@ sns.set_theme(
 )
 
 MODELS = [
-    "gpt-4o-mini",
+    # 🇺🇸 Western (5)
     "claude-haiku-4-5",
+    "gpt-4o-mini",
     "gemini-2.5-flash",
-    "deepseek-chat",
     "grok-3-mini",
+    "mercury-2",
+    # 🇨🇦 Western multilingual (2)
+    "c4ai-aya-expanse-32b",
+    "command-r7b-arabic-02-2025",
+    # 🇨🇳 China — CAC-regulated (4)
+    "deepseek-chat",
+    "qwen-plus",
+    "glm-4.5",
+    "baidu/ernie-4.5-300b-a47b",
+    # 🇸🇦 Gulf state-research (1)
+    "ollama:allam-7b",
+    # 🇹🇼 Taiwan state-counter (1)
+    "ollama:taide-llama3-8b",
+    # 🇮🇱 Israel commercial (1)
+    "jamba-mini-2-2026-01",
+    # NOTE: yandexgpt deliberately excluded — 270/270 refusal rate; covered by
+    # a separate "categorical refusal" slide rather than a cosine bar.
 ]
 EVENT = "ru_uk_core"
 LANGS = list(DEFAULT_LANGS)
-OUT_DIR = PROJECT_ROOT / "Presentations" / "figures" / "May 11"
-
-# Carto "Bold" categorical palette — editorial-grade hues with balanced
-# luminance, designed for categorical data viz. Reordered so the first
-# three (existing providers in 27 April deck) read as cool→warm and the
-# two new providers (DeepSeek, Grok) sit on the warm/violet end.
-CARTO_BOLD = ["#3969AC", "#11A579", "#F2B701", "#E73F74", "#7F3C8D"]
-MODEL_COLORS = dict(zip(MODELS, CARTO_BOLD))
+OUT_DIR = PROJECT_ROOT / "Presentations" / "figures" / "May 25"
 
 
 def load_model_matrices(model: str, event: str = EVENT, root: Path = ANALYSIS_DIR):
@@ -75,10 +86,12 @@ def load_model_matrices(model: str, event: str = EVENT, root: Path = ANALYSIS_DI
 def figure_ingroup_bars(out_path: Path):
     """Grouped bar chart: diagonal pull per (response language, model) with 95% CIs."""
     n = len(MODELS)
-    fig, ax = plt.subplots(figsize=(max(8, 1.7 * n), 4.8))
+    # Cap width — figsize stays slide-friendly even at n=14.
+    fig_w = min(16.0, max(8.0, 1.0 * n + 4))
+    fig, ax = plt.subplots(figsize=(fig_w, 5.4))
 
     x = np.arange(len(LANGS))
-    group_w = 0.78
+    group_w = 0.82
     width = group_w / n
 
     for i, model in enumerate(MODELS):
@@ -87,27 +100,32 @@ def figure_ingroup_bars(out_path: Path):
         diag_cis  = np.diag(ci)
         offset = (i - (n - 1) / 2) * width
         ax.bar(x + offset, diag_vals, width, yerr=diag_cis,
-               label=model, color=MODEL_COLORS[model],
-               capsize=3, edgecolor="white", linewidth=0.6)
+               color=MODEL_COLORS[model],
+               capsize=2, edgecolor="white", linewidth=0.5)
 
     ax.axhline(0, color="black", linewidth=0.7)
     ax.set_xticks(x)
     ax.set_xticklabels([f"response = {l.upper()}" for l in LANGS])
     ax.set_ylabel("Row-centered cosine\n(+ = pulled toward own-language Wikipedia)")
     ax.set_title("Ingroup bias: each language's response pulls toward its own-language Wikipedia\n"
-                 "Row-centered diagonal, 95% CI across 9 questions × 10 samples", fontsize=11)
-    ax.legend(loc="upper right", frameon=False)
+                 f"Row-centered diagonal, 95% CI across 9 questions × 10 samples · {n} providers",
+                 fontsize=11)
     ax.grid(axis="y", alpha=0.25)
     ax.spines[["top", "right"]].set_visible(False)
 
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=180)
+    plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()
 
 
-def _draw_heatmap_panel(ax, rc, ci, abs_max, *, cmap, title, show_ylabel=False):
+def _draw_heatmap_panel(ax, rc, ci, abs_max, *, cmap, title,
+                        show_ylabel=False, show_values=True):
     """Render one model's 3x3 row-centered heatmap with the punchy treatment.
-    Diagonal cells get bold text + a thick outline; off-diagonals are quieter."""
+    Diagonal cells get bold text + a thick outline; off-diagonals are quieter.
+
+    `show_values=False` suppresses the per-cell value/CI text — needed for the
+    15-panel grid where the numbers are illegible at slide scale and just
+    clutter the colour read.
+    """
     im = ax.imshow(rc, cmap=cmap, vmin=-abs_max, vmax=abs_max, aspect="equal")
     for s in ("top", "right", "left", "bottom"):
         ax.spines[s].set_visible(False)
@@ -124,21 +142,22 @@ def _draw_heatmap_panel(ax, rc, ci, abs_max, *, cmap, title, show_ylabel=False):
         ax.axhline(k - 0.5, color="white", lw=2.5, zorder=3)
         ax.axvline(k - 0.5, color="white", lw=2.5, zorder=3)
 
-    for i in range(3):
-        for j in range(3):
-            val = rc[i, j]
-            txt_color = "white" if abs(val) > 0.55 * abs_max else "#1a1a1a"
-            on_diag = (i == j)
-            ax.text(j, i - 0.06,
-                    f"{val:+.3f}",
-                    ha="center", va="center",
-                    fontsize=14 if on_diag else 11,
-                    fontweight="bold" if on_diag else "regular",
-                    color=txt_color, zorder=4)
-            ax.text(j, i + 0.30,
-                    f"±{ci[i,j]:.3f}",
-                    ha="center", va="center",
-                    fontsize=8, color=txt_color, alpha=0.85, zorder=4)
+    if show_values:
+        for i in range(3):
+            for j in range(3):
+                val = rc[i, j]
+                txt_color = "white" if abs(val) > 0.55 * abs_max else "#1a1a1a"
+                on_diag = (i == j)
+                ax.text(j, i - 0.06,
+                        f"{val:+.3f}",
+                        ha="center", va="center",
+                        fontsize=14 if on_diag else 11,
+                        fontweight="bold" if on_diag else "regular",
+                        color=txt_color, zorder=4)
+                ax.text(j, i + 0.30,
+                        f"±{ci[i,j]:.3f}",
+                        ha="center", va="center",
+                        fontsize=8, color=txt_color, alpha=0.85, zorder=4)
 
     # Thick outline on the diagonal — the story cells.
     for i in range(3):
@@ -149,32 +168,55 @@ def _draw_heatmap_panel(ax, rc, ci, abs_max, *, cmap, title, show_ylabel=False):
 
 
 def figure_heatmap_grid(out_path: Path):
-    """Row-centered heatmaps for every model, shared color scale."""
+    """Row-centered heatmaps for every model, shared color scale.
+
+    Reflows into a 2D grid (auto chooses ncols≈7 to give ~16:9 slide aspect).
+    Empty slots are blanked out cleanly.
+    """
     matrices = {m: load_model_matrices(m) for m in MODELS}
     abs_max = max(float(np.max(np.abs(rc))) for rc, _ in matrices.values())
-    abs_max = round(abs_max + 0.04, 2)  # round up for cleaner colorbar ticks
-
+    abs_max = round(abs_max + 0.04, 2)
     cmap = sns.color_palette("vlag", as_cmap=True)
 
     n = len(MODELS)
-    fig, axes = plt.subplots(1, n, figsize=(3.7 * n, 4.6), constrained_layout=True)
-    if n == 1:
-        axes = [axes]
+    # Pick a 2D grid: prefer ~7 cols for a slide-friendly aspect.
+    if n <= 5:
+        nrows, ncols = 1, n
+    elif n <= 10:
+        ncols = (n + 1) // 2
+        nrows = 2
+    else:
+        ncols = 7
+        nrows = (n + ncols - 1) // ncols
+
+    fig, axes = plt.subplots(
+        nrows, ncols,
+        figsize=(2.9 * ncols, 3.6 * nrows + 0.4),
+        constrained_layout=True,
+    )
+    axes_flat = axes.flatten() if hasattr(axes, "flatten") else [axes]
+
     im = None
-    for idx, (ax, model) in enumerate(zip(axes, MODELS)):
+    for idx, model in enumerate(MODELS):
+        ax = axes_flat[idx]
         rc, ci = matrices[model]
         im = _draw_heatmap_panel(ax, rc, ci, abs_max,
                                  cmap=cmap, title=model,
-                                 show_ylabel=(idx == 0))
+                                 show_ylabel=(idx % ncols == 0),
+                                 show_values=False)
 
-    cbar = fig.colorbar(im, ax=axes, shrink=0.7, pad=0.02,
+    # Blank any unused panels.
+    for idx in range(n, len(axes_flat)):
+        axes_flat[idx].set_visible(False)
+
+    cbar = fig.colorbar(im, ax=axes_flat[:n], shrink=0.65, pad=0.02,
                         label="Row-centered cosine\n(+ = pulled toward own-language Wikipedia)")
     cbar.outline.set_visible(False)
     cbar.ax.tick_params(length=0)
 
-    fig.suptitle("Diagonal pull = ingroup bias — consistent across all five providers",
-                 fontsize=14, fontweight="bold", y=1.02)
-    plt.savefig(out_path, dpi=180)
+    fig.suptitle(f"Diagonal pull = ingroup bias — consistent across all {n} providers",
+                 fontsize=14, fontweight="bold")
+    plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()
 
 
@@ -212,9 +254,11 @@ def figure_ingroup_bars_raw_vs_debiased(out_path: Path):
     of both responses and anchors — i.e. it is not a lexical artefact.
     """
     n = len(MODELS)
-    fig, axes = plt.subplots(1, 2, figsize=(max(12, 2.4 * n), 4.8), sharey=True)
+    # Cap width — 18 inches is plenty even at n=14.
+    fig_w = min(18.0, max(12.0, 1.3 * n + 4))
+    fig, axes = plt.subplots(1, 2, figsize=(fig_w, 5.4), sharey=True)
     x = np.arange(len(LANGS))
-    group_w = 0.78
+    group_w = 0.84
     width = group_w / n
 
     panels = [
@@ -230,8 +274,8 @@ def figure_ingroup_bars_raw_vs_debiased(out_path: Path):
             diag_cis  = np.diag(ci)
             offset = (i - (n - 1) / 2) * width
             ax.bar(x + offset, diag_vals, width, yerr=diag_cis,
-                   label=model, color=MODEL_COLORS[model],
-                   capsize=3, edgecolor="white", linewidth=0.6)
+                   color=MODEL_COLORS[model],
+                   capsize=2, edgecolor="white", linewidth=0.5)
             y_max = max(y_max, float(np.max(diag_vals + diag_cis)))
         ax.axhline(0, color="black", linewidth=0.7)
         ax.set_xticks(x)
@@ -241,14 +285,12 @@ def figure_ingroup_bars_raw_vs_debiased(out_path: Path):
         ax.spines[["top", "right"]].set_visible(False)
 
     axes[0].set_ylabel("Row-centered cosine\n(+ = pulled toward own-language Wikipedia)")
-    axes[1].legend(loc="upper right", frameon=False, fontsize=9)
     for ax in axes:
         ax.set_ylim(top=y_max * 1.15)
 
     fig.suptitle("Ingroup bias: effect survives after projecting out the language subspace",
                  fontsize=12)
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=180)
+    plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()
 
 
@@ -268,7 +310,7 @@ def figure_asymmetry_slope(out_path: Path):
             ax.plot([0, 1], [raw_v, deb_v],
                     marker="o", color=MODEL_COLORS[model],
                     linewidth=2.4, markersize=8, alpha=0.95,
-                    label=model, clip_on=False, zorder=3)
+                    clip_on=False, zorder=3)
         ax.axhline(0, color="black", linewidth=0.6)
         ax.set_xticks([0, 1])
         ax.set_xticklabels(["Raw", "Debiased"], fontsize=11)
@@ -278,7 +320,6 @@ def figure_asymmetry_slope(out_path: Path):
         ax.grid(axis="y", alpha=0.25)
     axes[0].set_ylabel("Diagonal pull (own-language Wiki)\nrow-centered cosine",
                        fontsize=10)
-    axes[-1].legend(loc="upper right", fontsize=8.5, frameon=False)
 
     fig.suptitle("Debiasing — EN survives (content/framing), UK collapses (lexical)",
                  fontsize=14, fontweight="bold")
@@ -346,15 +387,9 @@ def figure_provider_agreement(out_path: Path):
         ax.axhline(k - 0.5, color="white", lw=2.0)
         ax.axvline(k - 0.5, color="white", lw=2.0)
 
-    midpoint = vmin + 0.65 * (1.0 - vmin)
-    for i in range(n):
-        for j in range(n):
-            v = M[i, j]
-            txt_col = "white" if v > midpoint else "#1a1a1a"
-            ax.text(j, i, f"{v:.2f}",
-                    ha="center", va="center",
-                    fontsize=12, fontweight="bold" if i == j else "regular",
-                    color=txt_col)
+    # Per-cell numbers are dropped at n=14 — 196 labels are illegible at slide
+    # scale and steal attention from the colour read. The colorbar carries
+    # the magnitude; the diagonal-1.0 sanity check is implied by the colormap.
 
     cbar = fig.colorbar(im, ax=ax, shrink=0.7, pad=0.02,
                         label="Mean response cosine\n(averaged over 9 questions × 10 samples × 3 languages)")
@@ -384,7 +419,7 @@ def figure_lead_vs_full_slope(out_path: Path):
             ax.plot([0, 1], [lead_v, full_v],
                     marker="o", color=MODEL_COLORS[model],
                     linewidth=2.4, markersize=8, alpha=0.95,
-                    label=model, clip_on=False, zorder=3)
+                    clip_on=False, zorder=3)
         ax.axhline(0, color="black", linewidth=0.6)
         ax.set_xticks([0, 1])
         ax.set_xticklabels(["Lead-only", "Full page"], fontsize=11)
@@ -394,7 +429,6 @@ def figure_lead_vs_full_slope(out_path: Path):
         ax.grid(axis="y", alpha=0.25)
     axes[0].set_ylabel("Diagonal pull (own-language Wiki)\nrow-centered cosine",
                        fontsize=10)
-    axes[-1].legend(loc="lower right", fontsize=8.5, frameon=False)
 
     fig.suptitle("Sensitivity check — anchor choice (lead vs full page) shifts magnitudes; pattern survives",
                  fontsize=13, fontweight="bold")
@@ -402,18 +436,39 @@ def figure_lead_vs_full_slope(out_path: Path):
     plt.close()
 
 
+def _safe_model_name(m: str) -> str:
+    """Filesystem-safe version of model id (handles slashes, colons, dots)."""
+    return m.replace("/", "_").replace(":", "_").replace(".", "_")
+
+
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    figure_palette_legend(OUT_DIR / "00_palette_legend.png")
     figure_ingroup_bars(OUT_DIR / "01_ingroup_bars.png")
     figure_heatmap_grid(OUT_DIR / "02_heatmap_grid.png")
     figure_ingroup_bars_raw_vs_debiased(OUT_DIR / "03_ingroup_bars_raw_vs_debiased.png")
     figure_asymmetry_slope(OUT_DIR / "06_asymmetry_slope.png")
     figure_provider_agreement(OUT_DIR / "07_provider_agreement.png")
-    figure_lead_vs_full_slope(OUT_DIR / "09_lead_vs_full_slope.png")
+
+    # Lead-vs-full slope was a 11 May figure; for the 25 May matrix we
+    # don't have analysis_full data on the new providers (would require
+    # re-anchoring every response against full-page Wikipedia bodies).
+    # Skip if any model is missing — render only when complete.
+    have_full = all(
+        (ANALYSIS_FULL_DIR / m / EVENT / "anchor_heatmap_rowcentered.csv").exists()
+        for m in MODELS
+    )
+    if have_full:
+        figure_lead_vs_full_slope(OUT_DIR / "09_lead_vs_full_slope.png")
+    else:
+        missing = [m for m in MODELS
+                   if not (ANALYSIS_FULL_DIR / m / EVENT / "anchor_heatmap_rowcentered.csv").exists()]
+        print(f"Skipping lead-vs-full slope figure — analysis_full missing for "
+              f"{len(missing)} model(s): {', '.join(missing[:3])}{'...' if len(missing) > 3 else ''}")
+
     # Per-model focus heatmaps for slide-tool zoom animations.
     for model in MODELS:
-        safe = model.replace(".", "_")
-        figure_heatmap_focus(OUT_DIR / f"02_heatmap_focus_{safe}.png", model)
+        figure_heatmap_focus(OUT_DIR / f"02_heatmap_focus_{_safe_model_name(model)}.png", model)
     print(f"Wrote figures to {OUT_DIR}")
 
 

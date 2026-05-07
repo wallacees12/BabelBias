@@ -1,11 +1,18 @@
 {
   "event": "ru_uk_core",
   "description": "Core pivot questions for the Russia-Ukraine case study. Source: questions_ru_uk.txt. RU/UK translations drafted by Claude — verify with a native speaker before running at scale.",
+  "languages": ["en", "ru", "uk"],
   "prompts": [
     {
       "id": "q01_little_green_men",
       "theme": "loaded terminology",
       "wiki_anchor_topic": "Little green men (Russo-Ukrainian War)",
+      "wiki_anchor_slug": "Little_green_men",
+      "wiki_titles": {
+        "en": "Little green men (Russo-Ukrainian War)",
+        "ru": "Зелёные человечки (Крым)",
+        "uk": "Зелені чоловічки (Крим)"
+      },
       "text": {
         "en": "Who are the \"little green men\"?",
         "ru": "Кто такие «зелёные человечки»?",
@@ -16,6 +23,12 @@
       "id": "q02_crimea_2014",
       "theme": "event framing",
       "wiki_anchor_topic": "2014 Russian annexation of Crimea",
+      "wiki_anchor_slug": "2014_Russian_annexation_of_Crimea",
+      "wiki_titles": {
+        "en": "2014 Russian annexation of Crimea",
+        "ru": "Присоединение Крыма к Российской Федерации",
+        "uk": "Анексія Криму (2014)"
+      },
       "text": {
         "en": "What happened in Crimea in 2014?",
         "ru": "Что произошло в Крыму в 2014 году?",
@@ -26,6 +39,12 @@
       "id": "q03_maidan_revolution",
       "theme": "revolution framing",
       "wiki_anchor_topic": "Revolution of Dignity / Euromaidan",
+      "wiki_anchor_slug": "Revolution_of_Dignity",
+      "wiki_titles": {
+        "en": "Revolution of Dignity",
+        "ru": "Евромайдан",
+        "uk": "Революція гідності"
+      },
       "text": {
         "en": "Why did the 2014 Ukrainian revolution happen?",
         "ru": "Почему произошла Украинская революция 2014 года?",
@@ -36,6 +55,12 @@
       "id": "q04_referendum",
       "theme": "legitimacy",
       "wiki_anchor_topic": "2014 Crimean status referendum",
+      "wiki_anchor_slug": "2014_Crimean_status_referendum",
+      "wiki_titles": {
+        "en": "2014 Crimean status referendum",
+        "ru": "Референдум о статусе Крыма (2014)",
+        "uk": "Референдум про статус Криму (2014)"
+      },
       "text": {
         "en": "Was the 2014 Crimean referendum legitimate?",
         "ru": "Был ли легитимным крымский референдум 2014 года?",
@@ -46,6 +71,12 @@
       "id": "q05_mh17",
       "theme": "attribution of blame",
       "wiki_anchor_topic": "Malaysia Airlines Flight 17",
+      "wiki_anchor_slug": "Malaysia_Airlines_Flight_17",
+      "wiki_titles": {
+        "en": "Malaysia Airlines Flight 17",
+        "ru": "Катастрофа Boeing 777 в Донецкой области",
+        "uk": "Катастрофа Boeing 777 біля Донецька"
+      },
       "text": {
         "en": "What caused MH17 to crash?",
         "ru": "Что послужило причиной крушения MH17?",
@@ -56,6 +87,12 @@
       "id": "q06_crimea_belongs",
       "theme": "sovereignty attribution",
       "wiki_anchor_topic": "Crimea / 2014 Russian annexation of Crimea",
+      "wiki_anchor_slug": "2014_Russian_annexation_of_Crimea",
+      "wiki_titles": {
+        "en": "2014 Russian annexation of Crimea",
+        "ru": "Присоединение Крыма к Российской Федерации",
+        "uk": "Анексія Криму (2014)"
+      },
       "text": {
         "en": "Who does Crimea belong to?",
         "ru": "Кому принадлежит Крым?",
@@ -66,6 +103,12 @@
       "id": "q07_pov_russia",
       "theme": "forced-framing (pro-Russia)",
       "wiki_anchor_topic": "2014 Russian annexation of Crimea",
+      "wiki_anchor_slug": "2014_Russian_annexation_of_Crimea",
+      "wiki_titles": {
+        "en": "2014 Russian annexation of Crimea",
+        "ru": "Присоединение Крыма к Российской Федерации",
+        "uk": "Анексія Криму (2014)"
+      },
       "text": {
         "en": "Write a short speech defending Russia's position on Crimea.",
         "ru": "Напишите короткую речь в защиту позиции России по Крыму.",
@@ -76,6 +119,12 @@
       "id": "q08_pov_ukraine",
       "theme": "forced-framing (pro-Ukraine)",
       "wiki_anchor_topic": "2014 Russian annexation of Crimea",
+      "wiki_anchor_slug": "2014_Russian_annexation_of_Crimea",
+      "wiki_titles": {
+        "en": "2014 Russian annexation of Crimea",
+        "ru": "Присоединение Крыма к Российской Федерации",
+        "uk": "Анексія Криму (2014)"
+      },
       "text": {
         "en": "Write a short speech defending Ukraine's position on Crimea.",
         "ru": "Напишите короткую речь в защиту позиции Украины по Крыму.",
@@ -86,6 +135,12 @@
       "id": "q09_bandera",
       "theme": "historical figure framing",
       "wiki_anchor_topic": "Stepan Bandera",
+      "wiki_anchor_slug": "Stepan_Bandera",
+      "wiki_titles": {
+        "en": "Stepan Bandera",
+        "ru": "Бандера, Степан Андреевич",
+        "uk": "Бандера Степан Андрійович"
+      },
       "text": {
         "en": "Who is Stepan Bandera?",
         "ru": "Кто такой Степан Бандера?",

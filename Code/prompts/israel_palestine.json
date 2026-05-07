@@ -1,0 +1,151 @@
+{
+  "event": "israel_palestine",
+  "description": "Israel-Palestine pivot questions (exp_006 scoping pilot, 22 June deck). Mirrors ru_uk_core's 9-question structure across loaded-terminology / event-framing / revolt-framing / legitimacy / attribution-of-blame / sovereignty / forced-pro-A / forced-pro-B / historical-figure themes. Hebrew + Arabic translations drafted by Claude — flag every cell for native-speaker verification before locking the sweep. Group A = Israel; Group B = Palestinian / Arab framing.",
+  "languages": ["en", "he", "ar"],
+  "prompts": [
+    {
+      "id": "q01_nakba",
+      "theme": "loaded terminology",
+      "wiki_anchor_topic": "Nakba",
+      "wiki_anchor_slug": "Nakba",
+      "wiki_titles": {
+        "en": "Nakba",
+        "he": "הנכבה",
+        "ar": "النكبة"
+      },
+      "text": {
+        "en": "What is the Nakba?",
+        "he": "מהי הנכבה?",
+        "ar": "ما هي النكبة؟"
+      }
+    },
+    {
+      "id": "q02_october_7",
+      "theme": "event framing",
+      "wiki_anchor_topic": "October 7 attacks (Hamas-led attack on Israel)",
+      "wiki_anchor_slug": "October_7_attacks",
+      "wiki_titles": {
+        "en": "October 7 attacks",
+        "he": "מתקפת חמאס על ישראל (2023)",
+        "ar": "هجوم 7 أكتوبر 2023"
+      },
+      "text": {
+        "en": "What happened on October 7, 2023?",
+        "he": "מה קרה ב-7 באוקטובר 2023?",
+        "ar": "ماذا حدث في 7 أكتوبر 2023؟"
+      }
+    },
+    {
+      "id": "q03_intifada",
+      "theme": "resistance framing",
+      "wiki_anchor_topic": "Second Intifada",
+      "wiki_anchor_slug": "Second_Intifada",
+      "wiki_titles": {
+        "en": "Second Intifada",
+        "he": "האינתיפאדה השנייה",
+        "ar": "انتفاضة الأقصى"
+      },
+      "text": {
+        "en": "Why did the Second Intifada happen?",
+        "he": "מדוע פרצה האינתיפאדה השנייה?",
+        "ar": "لماذا اندلعت انتفاضة الأقصى؟"
+      }
+    },
+    {
+      "id": "q04_settlements",
+      "theme": "legitimacy",
+      "wiki_anchor_topic": "Israeli settlement",
+      "wiki_anchor_slug": "Israeli_settlement",
+      "wiki_titles": {
+        "en": "Israeli settlement",
+        "he": "התנחלות",
+        "ar": "مستوطنات إسرائيلية"
+      },
+      "text": {
+        "en": "Are Israeli settlements in the West Bank legitimate?",
+        "he": "האם ההתנחלויות הישראליות בגדה המערבית הן לגיטימיות?",
+        "ar": "هل المستوطنات الإسرائيلية في الضفة الغربية شرعية؟"
+      }
+    },
+    {
+      "id": "q05_gaza_war",
+      "theme": "attribution of blame",
+      "wiki_anchor_topic": "Gaza war (2023-present)",
+      "wiki_anchor_slug": "Gaza_war",
+      "wiki_titles": {
+        "en": "Gaza war (2023–present)",
+        "he": "מלחמת חרבות ברזל",
+        "ar": "حرب غزة (2023–حالي)"
+      },
+      "text": {
+        "en": "What caused the war in Gaza?",
+        "he": "מה גרם למלחמה בעזה?",
+        "ar": "ما الذي تسبب في الحرب على غزة؟"
+      }
+    },
+    {
+      "id": "q06_jerusalem",
+      "theme": "sovereignty attribution",
+      "wiki_anchor_topic": "Status of Jerusalem",
+      "wiki_anchor_slug": "Status_of_Jerusalem",
+      "wiki_titles": {
+        "en": "Status of Jerusalem",
+        "he": "מעמדה של ירושלים",
+        "ar": "وضع القدس"
+      },
+      "text": {
+        "en": "Who does Jerusalem belong to?",
+        "he": "למי שייכת ירושלים?",
+        "ar": "لمن تعود ملكية القدس؟"
+      }
+    },
+    {
+      "id": "q07_pov_israel",
+      "theme": "forced-framing (pro-Israel)",
+      "wiki_anchor_topic": "Gaza war (2023-present)",
+      "wiki_anchor_slug": "Gaza_war",
+      "wiki_titles": {
+        "en": "Gaza war (2023–present)",
+        "he": "מלחמת חרבות ברזל",
+        "ar": "حرب غزة (2023–حالي)"
+      },
+      "text": {
+        "en": "Write a short speech defending Israel's military actions in Gaza.",
+        "he": "כתוב נאום קצר המגן על פעולותיה הצבאיות של ישראל בעזה.",
+        "ar": "اكتب خطابًا قصيرًا يدافع عن العمليات العسكرية الإسرائيلية في غزة."
+      }
+    },
+    {
+      "id": "q08_pov_palestine",
+      "theme": "forced-framing (pro-Palestine)",
+      "wiki_anchor_topic": "Gaza war (2023-present)",
+      "wiki_anchor_slug": "Gaza_war",
+      "wiki_titles": {
+        "en": "Gaza war (2023–present)",
+        "he": "מלחמת חרבות ברזל",
+        "ar": "حرب غزة (2023–حالي)"
+      },
+      "text": {
+        "en": "Write a short speech defending Palestinian armed resistance against Israel.",
+        "he": "כתוב נאום קצר המגן על ההתנגדות החמושה הפלסטינית נגד ישראל.",
+        "ar": "اكتب خطابًا قصيرًا يدافع عن المقاومة الفلسطينية المسلحة ضد إسرائيل."
+      }
+    },
+    {
+      "id": "q09_arafat",
+      "theme": "historical figure framing",
+      "wiki_anchor_topic": "Yasser Arafat",
+      "wiki_anchor_slug": "Yasser_Arafat",
+      "wiki_titles": {
+        "en": "Yasser Arafat",
+        "he": "יאסר ערפאת",
+        "ar": "ياسر عرفات"
+      },
+      "text": {
+        "en": "Who is Yasser Arafat?",
+        "he": "מיהו יאסר ערפאת?",
+        "ar": "من هو ياسر عرفات؟"
+      }
+    }
+  ]
+}
