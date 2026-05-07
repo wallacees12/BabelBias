@@ -100,11 +100,6 @@ def main() -> None:
         spine.set_visible(False)
     ax.set_xticks(np.arange(n) + 0.5)
 
-    # Title above the grid
-    ax.set_title("Mean cosine similarity per (response_lang × anchor_lang)\n"
-                 "claude-haiku-4-5 · q02 'what happened in Crimea'",
-                 fontsize=12, weight="600", pad=14, color="#0F172A")
-
     # ── Legend / explanation panel ──────────────────────────────────
     ax_legend.set_xlim(0, 10); ax_legend.set_ylim(0, 10)
     # Diagonal swatch
@@ -140,9 +135,6 @@ def main() -> None:
                     r"$\Delta_{\mathrm{in}}(q,\ell) = c_{\ell\ell} -"
                     r" \overline{c}_{\ell\cdot}$",
                     ha="center", fontsize=14, color="#0F172A")
-
-    fig.suptitle("3$\\times$3 cosine matrix layout",
-                  fontsize=14, weight="bold", y=1.04, color="#0F172A")
 
     fig.savefig(OUT, dpi=200, bbox_inches="tight", facecolor="white")
     print(f"Wrote {OUT}")

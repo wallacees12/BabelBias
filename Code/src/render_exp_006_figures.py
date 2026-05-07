@@ -217,18 +217,6 @@ def figure_01_cross_conflict(out_path: Path) -> None:
         fontsize=10.5,
     )
 
-    fig.suptitle(
-        "Cross-conflict ingroup pull replicates across 5 contested-event families",
-        fontsize=15, fontweight="bold", y=1.03,
-    )
-    fig.text(
-        0.5, -0.04,
-        "Bars: per-language diagonal ingroup pull, averaged across 14 providers (95% CI from across-provider variance). "
-        "Five conflicts × six language pairs (en/ru/uk · en/he/ar · en/hi/ur · en/zh · en/es). "
-        "Every event shows positive diagonal pull; magnitude varies. Falklands is the deliberate Oeberst-predicted null falsification anchor — confirmed.",
-        ha="center", fontsize=9.5, color="#444", style="italic",
-    )
-
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
@@ -292,24 +280,6 @@ def figure_02_topic_vs_language(out_path: Path) -> None:
     ax.grid(alpha=0.3)
     ax.legend(loc="lower right", frameon=False, fontsize=10)
 
-    ax.set_title(
-        "Topic-vs-language disentanglement —\n"
-        "vertical distance above y=x = topic-specific pull above language floor",
-        fontsize=13, fontweight="bold", pad=14,
-    )
-
-    fig.text(
-        0.5, -0.045,
-        "Each point = one (event × language) cell. X-axis: language-similarity floor "
-        "(cosine of responses to N=200 random universal-control articles in same language). "
-        "Y-axis: cosine of responses to event-specific Wikipedia anchor. Distance above y=x is the "
-        "topic-driven pull above the language-similarity floor.   "
-        "Hebrew is the lone outlier — its language-similarity floor (0.36) approaches its on-topic cosine (0.54), "
-        "giving topic-lift only +0.18. Hebrew text clusters with Hebrew text regardless of topic; "
-        "the apparent ingroup pull on IL-PS is largely lexical, not framing.",
-        ha="center", fontsize=9.5, color="#444", style="italic",
-        wrap=True,
-    )
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
@@ -368,10 +338,6 @@ def figure_03_raw_vs_debiased(out_path: Path) -> None:
     ax.set_xticklabels(df["xlabel"], rotation=30, ha="right", fontsize=10)
     ax.set_ylabel("Diagonal ingroup pull\n(row-centered cosine, mean across providers)",
                   fontsize=10.5)
-    ax.set_title(
-        "Debiasing collapse hierarchy — content-driven vs lexical-artefact ingroup pulls",
-        fontsize=13.5, fontweight="bold", pad=12,
-    )
     ax.grid(axis="y", alpha=0.3)
     ax.legend(loc="upper right", frameon=False, fontsize=10)
 
@@ -390,12 +356,6 @@ def figure_03_raw_vs_debiased(out_path: Path) -> None:
                       edgecolor="#A50026", linewidth=1.4),
         )
 
-    fig.text(
-        0.5, -0.04,
-        "Cells sorted left→right by debiasing collapse %. EN cells (5–12% collapse) cluster on the left — robust content signal. "
-        "Hebrew (96% collapse) on the right — apparent ingroup pull dissolves under language-axis projection.",
-        ha="center", fontsize=9.5, color="#444", style="italic",
-    )
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
@@ -465,18 +425,6 @@ def figure_04_hebrew_convergent(out_path: Path) -> None:
                  fontsize=12.5, fontweight="bold", pad=8)
     ax.grid(axis="x", alpha=0.3)
 
-    fig.suptitle(
-        "Hebrew is the cross-method outlier — two independent analyses converge on the same edge case",
-        fontsize=14, fontweight="bold", y=1.04,
-    )
-    fig.text(
-        0.5, -0.04,
-        "Method A (left): % collapse of the diagonal ingroup pull when the language axis is projected out (estimated on the universal-control corpus).   "
-        "Method B (right): how strongly responses cluster with random neutral Wikipedia articles in the same language (no topic overlap).   "
-        "Hebrew tops both: the strongest debiasing collapse AND the highest off-topic baseline. "
-        "Two methodologically independent metrics identify the same outlier — Hebrew text clusters with Hebrew text on the language axis, not the framing axis.",
-        ha="center", fontsize=9.5, color="#444", style="italic",
-    )
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 

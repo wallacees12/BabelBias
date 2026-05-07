@@ -364,10 +364,6 @@ def main() -> None:
         ax.axvline(x, ymin=0.05, ymax=0.92,
                    color="#E2E8F0", linewidth=0.8, zorder=0)
 
-    # ── Title ─────────────────────────────────────────────────────────
-    fig.text(0.5, 0.97, "BabelBias methodology pipeline",
-             ha="center", fontsize=14.5, weight="bold", color="#0F172A")
-
     # ── Legend ────────────────────────────────────────────────────────
     legend_handles = [
         Line2D([0], [0], color="#475569", linewidth=1.6,

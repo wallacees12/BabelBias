@@ -106,10 +106,5 @@ def figure_palette_legend(out_path: Path) -> None:
                     fontsize=9.5, va="center",
                     family="monospace", color="#888")
 
-    fig.suptitle("Provider palette — colour encodes training-data ecosystem",
-                 fontsize=12, fontweight="bold", y=0.995)
-    fig.text(0.5, 0.01,
-             "Within-ecosystem hues are graded so individual providers stay distinguishable. Read the cluster, then the bar.",
-             ha="center", fontsize=8.5, color="#666", style="italic")
     plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()

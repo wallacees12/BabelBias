@@ -168,18 +168,6 @@ def render(out_path: Path) -> None:
     panel_phase_a(ax_a, df_a)
     panel_phase_b(ax_b, df_b)
 
-    fig.suptitle("exp_017 — Tokenizer leakage is not the explanation for cluster fusion",
-                 fontsize=14, fontweight="bold", y=1.02)
-    fig.text(
-        0.5, -0.04,
-        "Phase A: 3 inspectable tokenizers all below BLOOM's 0.76 RU-UK overlap; Cohere lowest, "
-        "Alibaba (Qwen-proxy) middle, cl100k highest.   "
-        "Phase B: at matched cluster count, total UK→RU fusion is comparable (4 of 9 questions ≥87%) "
-        "but redistributes across questions.   "
-        "Only q05 MH17 and q09 Bandera (green outlines) fuse robustly across both embedders — "
-        "the rest is embedder-conditional.",
-        ha="center", fontsize=9.5, color="#444", style="italic", wrap=True,
-    )
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
