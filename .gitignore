@@ -40,6 +40,9 @@ Experiments/
 Current_Overview.md
 Presentations/
 Thesis_Document_Ideas.md
+TODO.md
+thesis_claims.md
+git_rules.md
 
 # The thesis report lives in its own Overleaf-managed git repo cloned to
 # Report/tex/. Don't track it from BabelBias — push to Overleaf directly
@@ -61,3 +64,4 @@ Papers
 # Claude Code per-machine settings (settings.json is shared, .local.json isn't)
 .claude/settings.local.json
 *.json.bak
+Code/src/.translate_cache/
