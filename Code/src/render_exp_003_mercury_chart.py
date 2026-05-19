@@ -65,19 +65,17 @@ def main() -> None:
     ax.set_xlim(0, 10)
     ax.set_xticks(range(0, 11, 2))
     ax.set_xlabel("count of n=10 responses")
-    ax.set_title(
-        "Mercury-2 · q01 'little green men' · same prompt, three languages\n"
-        "(coding by Sonnet 4.6 against pre-registered 4-level rubric)",
-        fontsize=10, loc="left",
-    )
     ax.invert_yaxis()
-    ax.legend(loc="lower right", fontsize=8, frameon=False)
+    ax.legend(
+        loc="upper center", bbox_to_anchor=(0.5, -0.22),
+        ncol=4, fontsize=8, frameon=False,
+    )
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
-    plt.savefig(OUT, dpi=160)
+    plt.savefig(OUT, dpi=160, bbox_inches="tight")
     plt.close()
     print(f"wrote {OUT}")
 

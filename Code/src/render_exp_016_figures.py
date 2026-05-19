@@ -260,8 +260,6 @@ def fig02_purity_bars(rows, layer0, all_models):
     ax.set_xticks(x); ax.set_xticklabels(sets)
     ax.set_ylim(0, 1.08)
     ax.set_ylabel("mean per-cluster purity")
-    ax.set_title("Purity by axis × cluster set (EVoC Layer 0)",
-                 loc="left", fontweight="bold")
     ax.legend(loc="lower left", ncol=2)
     save_both(fig, "fig02_purity_bars")
 
@@ -306,9 +304,6 @@ def fig03_model_fingerprint(rows, layer0):
     for y, v in zip(ys, vals):
         ax.text(v + 0.01, y, f"{v:.0%}", va="center", fontsize=7)
 
-    ax.set_title("Per-model embedding-cluster fingerprint  "
-                 "(higher = model's responses are more concentrated)",
-                 loc="left", fontweight="bold", fontsize=9)
     ax.legend(loc="lower right")
     fig.tight_layout()
     save_both(fig, "fig03_model_fingerprint")
