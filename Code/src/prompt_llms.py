@@ -61,6 +61,18 @@ PRICE_PER_1M = {
     "mercury-2":                    {"in": 0.25, "out": 1.00},
     # Yandex (refused on RU-UK; included for completeness)
     "yandexgpt":                    {"in": 0.05, "out": 0.20},
+    # Mistral (direct via api.mistral.ai). Rough public list prices — verify
+    # against the dashboard before quoting in a deck.
+    "mistral-large-latest":         {"in": 2.00, "out": 6.00},
+    "mistral-medium-latest":        {"in": 0.40, "out": 2.00},
+    "mistral-small-latest":         {"in": 0.10, "out": 0.30},
+    "magistral-medium-latest":      {"in": 2.00, "out": 5.00},
+    "magistral-small-latest":       {"in": 0.50, "out": 1.50},
+    "codestral-latest":             {"in": 0.30, "out": 0.90},
+    "ministral-8b-latest":          {"in": 0.10, "out": 0.10},
+    "ministral-3b-latest":          {"in": 0.04, "out": 0.04},
+    "open-mistral-nemo":            {"in": 0.15, "out": 0.15},
+    "pixtral-large-latest":         {"in": 2.00, "out": 6.00},
     # Local Ollama models — $0 marginal (own GPU)
     "ollama:allam-7b":              {"in": 0.00, "out": 0.00},
     "ollama:taide-llama3-8b":       {"in": 0.00, "out": 0.00},
@@ -113,6 +125,13 @@ def provider_for(model: str) -> str:
         return "ai21"
     if model.startswith("mercury"):
         return "inception"
+    # Mistral (direct) — covers the open lineup (open-mistral-*, ministral-*,
+    # pixtral-*) and the closed flagship lines (mistral-*, magistral-*,
+    # codestral-*). Together's open-weight Mistral re-hosts still go through
+    # the `together:` prefix above.
+    if model.startswith(("mistral-", "magistral-", "codestral-",
+                         "ministral-", "pixtral-", "open-mistral")):
+        return "mistral"
     raise ValueError(f"Unknown provider for model '{model}'")
 
 
@@ -195,6 +214,13 @@ def make_client(provider: str):
         from openai import OpenAI
         token = os.getenv("A121_API_KEY") or os.getenv("AI21_API_KEY")
         return OpenAI(api_key=token, base_url="https://api.ai21.com/studio/v1")
+    if provider == "mistral":
+        # Mistral La Plateforme — OpenAI-compatible chat completions at
+        # api.mistral.ai/v1. Covers the closed flagship lineup (mistral-large,
+        # magistral, codestral, pixtral) which Together does not host.
+        from openai import OpenAI
+        return OpenAI(api_key=os.getenv("MISTRAL_API_KEY"),
+                      base_url="https://api.mistral.ai/v1")
     if provider == "ollama":
         # Local Ollama daemon — OpenAI-compatible at http://localhost:11434/v1.
         # No real auth, just a placeholder string. Use the `ollama:` prefix in
@@ -373,7 +399,7 @@ def call_llm(client, provider: str, model: str, prompt_text: str, max_tokens: in
         # cosine comparison stays consistent with non-thinking models.
         return call_openai_compat(client, model, prompt_text, max_tokens, temperature,
                                   extra_body={"thinking": {"type": "disabled"}})
-    if provider in ("deepseek", "grok", "qwen", "openrouter", "inception", "cohere", "ai21"):
+    if provider in ("deepseek", "grok", "qwen", "openrouter", "inception", "cohere", "ai21", "mistral"):
         return call_openai_compat(client, model, prompt_text, max_tokens, temperature)
     if provider == "hf":
         # Strip the "hf:" routing prefix; the upstream model ID is the bare HF id.
