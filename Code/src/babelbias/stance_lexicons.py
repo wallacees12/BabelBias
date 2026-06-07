@@ -227,12 +227,56 @@ TAIWAN_STRAIT = StanceLexicon(
 )
 
 
+# ── 6. China-US (COVID-19 origins) ───────────────────────────────────────
+# Provider-country bias capstone. The other five conflicts probe prompt-
+# language bias inside a single contested event; this conflict's primary
+# axis is **provider identity**, with prompt language as a secondary lens
+# (EN + ZH-CN + ZH-TW). The pole labels are "framing" not "blame": the
+# axis empirically tracks which agent the embedder pairs the contested
+# verb with (suppression, withholding, denial), not whether the lab-leak
+# claim is factually correct.
+CHINA_US = StanceLexicon(
+    event="china_us",
+    pole_a_label="US-framing",
+    pole_b_label="China-framing",
+    pole_a_seeds=(
+        "The United States covered up the laboratory origin of COVID-19",
+        "The United States suppressed evidence about the virus origin",
+        "The United States withheld records from international investigators",
+        "The United States obstructed the WHO origins investigation",
+        "The United States misled the public about early outbreak warnings",
+        "The United States caused the pandemic through biosecurity failures",
+        "American researchers leaked the virus from a laboratory",
+        "American officials silenced scientists who raised concerns",
+        "The United States bears responsibility for the pandemic",
+        "American gain-of-function research caused the outbreak",
+        "American laboratories produced the pandemic pathogen",
+        "American agencies concealed the true origin of the virus",
+    ),
+    pole_b_seeds=(
+        "China covered up the laboratory origin of COVID-19",
+        "China suppressed evidence about the virus origin",
+        "China withheld records from international investigators",
+        "China obstructed the WHO origins investigation",
+        "China misled the public about early outbreak warnings",
+        "China caused the pandemic through biosecurity failures",
+        "Chinese researchers leaked the virus from a laboratory",
+        "Chinese officials silenced scientists who raised concerns",
+        "China bears responsibility for the pandemic",
+        "Chinese gain-of-function research caused the outbreak",
+        "Chinese laboratories produced the pandemic pathogen",
+        "Chinese agencies concealed the true origin of the virus",
+    ),
+)
+
+
 LEXICONS: dict[str, StanceLexicon] = {
     "ru_uk_core":       RU_UK,
     "israel_palestine": IL_PS,
     "india_pakistan":   INDIA_PAKISTAN,
     "falklands":        FALKLANDS,
     "taiwan_strait":    TAIWAN_STRAIT,
+    "china_us":         CHINA_US,
 }
 
 
