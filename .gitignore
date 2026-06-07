@@ -63,5 +63,13 @@ Papers
 
 # Claude Code per-machine settings (settings.json is shared, .local.json isn't)
 .claude/settings.local.json
+.claude/logs/
+Code/src/.claude/
 *.json.bak
 Code/src/.translate_cache/
+
+# Personal expenses / API billing — not shared (same class as Receipts/)
+Expenses/
+
+# Stale Overleaf clone remnant — the live clone is Report/tex/ (see git_rules § 1)
+Report/overleaf_clone/
