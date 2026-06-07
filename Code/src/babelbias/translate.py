@@ -39,6 +39,8 @@ _ISO_TO_DEEPL = {
     "zh":      "ZH-HANS",
     "zh-hans": "ZH-HANS",
     "zh-hant": "ZH-HANT",
+    "zh-cn":   "ZH-HANS",
+    "zh-tw":   "ZH-HANT",
     "es":      "ES",
     "de":      "DE",
     "fr":      "FR",

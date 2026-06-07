@@ -107,9 +107,6 @@ def figure_ingroup_bars(out_path: Path):
     ax.set_xticks(x)
     ax.set_xticklabels([f"response = {l.upper()}" for l in LANGS])
     ax.set_ylabel("Row-centered cosine\n(+ = pulled toward own-language Wikipedia)")
-    ax.set_title("Ingroup bias: each language's response pulls toward its own-language Wikipedia\n"
-                 f"Row-centered diagonal, 95% CI across 9 questions × 10 samples · {n} providers",
-                 fontsize=11)
     ax.grid(axis="y", alpha=0.25)
     ax.spines[["top", "right"]].set_visible(False)
 
@@ -214,8 +211,6 @@ def figure_heatmap_grid(out_path: Path):
     cbar.outline.set_visible(False)
     cbar.ax.tick_params(length=0)
 
-    fig.suptitle(f"Diagonal pull = ingroup bias — consistent across all {n} providers",
-                 fontsize=14, fontweight="bold")
     plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()
 
@@ -235,13 +230,11 @@ def figure_heatmap_focus(out_path: Path, model: str):
     cmap = sns.color_palette("vlag", as_cmap=True)
     fig, ax = plt.subplots(figsize=(6.4, 5.6), constrained_layout=True)
     im = _draw_heatmap_panel(ax, rc, ci, abs_max,
-                             cmap=cmap, title="", show_ylabel=True)
+                             cmap=cmap, title=model, show_ylabel=True)
     cbar = fig.colorbar(im, ax=ax, shrink=0.85, pad=0.02,
                         label="Row-centered cosine\n(+ = pulled toward own-language Wikipedia)")
     cbar.outline.set_visible(False)
     cbar.ax.tick_params(length=0)
-    fig.suptitle(f"{model} — diagonal is the ingroup-pull signal",
-                 fontsize=13, fontweight="bold", y=1.02)
     plt.savefig(out_path, dpi=180)
     plt.close()
 
@@ -288,8 +281,6 @@ def figure_ingroup_bars_raw_vs_debiased(out_path: Path):
     for ax in axes:
         ax.set_ylim(top=y_max * 1.15)
 
-    fig.suptitle("Ingroup bias: effect survives after projecting out the language subspace",
-                 fontsize=12)
     plt.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close()
 
@@ -321,8 +312,6 @@ def figure_asymmetry_slope(out_path: Path):
     axes[0].set_ylabel("Diagonal pull (own-language Wiki)\nrow-centered cosine",
                        fontsize=10)
 
-    fig.suptitle("Debiasing — EN survives (content/framing), UK collapses (lexical)",
-                 fontsize=14, fontweight="bold")
     plt.savefig(out_path, dpi=180)
     plt.close()
 
@@ -396,8 +385,6 @@ def figure_provider_agreement(out_path: Path):
     cbar.outline.set_visible(False)
     cbar.ax.tick_params(length=0)
 
-    fig.suptitle("Cross-provider response agreement — every model agrees with every other",
-                 fontsize=13, fontweight="bold", y=1.02)
     plt.savefig(out_path, dpi=180)
     plt.close()
 

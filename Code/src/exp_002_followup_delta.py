@@ -92,7 +92,7 @@ def render_delta_heatmaps(df: pd.DataFrame):
                 v = mat.values[i, j]
                 ax.text(j, i, f"{v:+.3f}", ha="center", va="center", fontsize=10,
                         color="black")
-        ax.set_title(f"{m} | Δ row-centered cosine\n(800-tok minus 400-tok)", fontsize=10)
+        ax.set_title(m, fontsize=10)
         plt.colorbar(im, ax=ax, shrink=0.85)
         plt.tight_layout()
         out = FIG_DIR / f"delta_heatmap_{m}.png"
@@ -101,27 +101,51 @@ def render_delta_heatmaps(df: pd.DataFrame):
 
 
 def render_delta_bar(df: pd.DataFrame):
-    """One bar per (model, response_lang) showing change in diagonal
-    (ingroup) row-centered cosine — i.e. resp_X aligned with wiki_X."""
+    """Grouped bar chart: per-model EN/RU/UK Δ row-centered diagonal cosine
+    between 400-tok (exp_001) and 800-tok (exp_002) sweeps. The visual
+    point is that every bar sits near zero — the ingroup-pull signal is
+    method-robust to a 2× token-budget change. Title-less per project
+    no-in-figure-titles rule; description lives in the slide caption."""
     diag = df[df.response_lang == df.anchor_lang].copy()
-    diag["label"] = diag["model"] + "\n" + diag["response_lang"].str.upper()
-    fig, ax = plt.subplots(figsize=(11, 4.4))
-    colors = ["#2c7fb8" if l == "en" else "#41ab5d" if l == "ru" else "#fdae61"
-              for l in diag.response_lang]
-    bars = ax.bar(diag.label, diag.delta_rowcentered, color=colors)
-    ax.axhline(0, color="black", linewidth=0.6)
-    ax.set_ylabel("Δ ingroup row-centered cosine\n(800-tok minus 400-tok)")
-    ax.set_title("exp_002_followup · Diagonal ingroup-pull change per (model, language) "
-                 "between 400-tok (exp_001) and 800-tok (exp_002) sweeps")
-    for bar, val in zip(bars, diag.delta_rowcentered):
-        offset = 0.002 if val >= 0 else -0.004
-        ax.text(bar.get_x() + bar.get_width() / 2, val + offset,
-                f"{val:+.3f}", ha="center",
-                va="bottom" if val >= 0 else "top", fontsize=8)
-    plt.xticks(rotation=0, fontsize=8)
+    pivot = diag.pivot(index="model", columns="response_lang",
+                       values="delta_rowcentered").reindex(index=MODELS,
+                                                          columns=list(LANGS))
+
+    lang_colors = {"en": "#2c7fb8", "ru": "#d7301f", "uk": "#fdae61"}
+    n_models = len(MODELS)
+    n_langs = len(LANGS)
+    bar_w = 0.26
+    x = np.arange(n_models)
+
+    fig, ax = plt.subplots(figsize=(10, 4.6))
+    for i, lang in enumerate(LANGS):
+        vals = pivot[lang].values
+        offset = (i - (n_langs - 1) / 2) * bar_w
+        bars = ax.bar(x + offset, vals, bar_w,
+                      color=lang_colors[lang], label=lang.upper(),
+                      edgecolor="white", linewidth=0.6)
+        for bar, val in zip(bars, vals):
+            va = "bottom" if val >= 0 else "top"
+            ax.text(bar.get_x() + bar.get_width() / 2,
+                    val + (0.0006 if val >= 0 else -0.0006),
+                    f"{val:+.3f}", ha="center", va=va, fontsize=7.5,
+                    color="#333333")
+
+    ax.axhline(0, color="black", linewidth=0.7)
+    ax.set_xticks(x)
+    ax.set_xticklabels(MODELS, fontsize=10)
+    ax.set_ylabel("Δ ingroup row-centered cosine\n(800-tok minus 400-tok)",
+                  fontsize=10)
+    # Fix y-axis so the near-zero magnitude reads visually: ±0.015 brackets
+    # the worst-case −0.011 (claude UK) and leaves headroom for value labels.
+    ax.set_ylim(-0.015, 0.015)
+    ax.legend(title="Response language", loc="upper right", frameon=False,
+              fontsize=9, title_fontsize=9)
+    ax.grid(axis="y", alpha=0.25)
+    ax.spines[["top", "right"]].set_visible(False)
     plt.tight_layout()
     out = FIG_DIR / "delta_ingroup_bar.png"
-    plt.savefig(out, dpi=150)
+    plt.savefig(out, dpi=180, bbox_inches="tight")
     plt.close()
     return out
 

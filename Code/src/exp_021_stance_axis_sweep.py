@@ -88,11 +88,14 @@ def project_responses(event: str, axis: np.ndarray) -> list[dict]:
     rows = []
     if not emb_root.is_dir():
         return rows
-    for model_dir in sorted(emb_root.iterdir()):
-        if not model_dir.is_dir():
+    # Find every `<event>` leaf dir at any depth, so slash-namespaced model
+    # IDs (e.g. baidu/ernie-...) that nest into sub-directories are not
+    # silently dropped. The model name is the path from emb_root to the leaf.
+    for ev_dir in sorted(emb_root.glob(f"**/{event}")):
+        if not ev_dir.is_dir():
             continue
-        model = model_dir.name
-        for f in sorted((model_dir / event).glob("*.json")):
+        model = str(ev_dir.parent.relative_to(emb_root))
+        for f in sorted(ev_dir.glob("*.json")):
             try:
                 rec = json.loads(f.read_text())
             except (json.JSONDecodeError, OSError):
@@ -161,11 +164,13 @@ def render_conflict_figure(event: str, lex: StanceLexicon,
         "en": "#0F172A", "ru": "#A50026", "uk": "#1F4E79",
         "he": "#1F4E79", "ar": "#A50026", "es": "#A50026",
         "hi": "#A50026", "ur": "#1F4E79", "zh": "#A50026",
+        "zh-cn": "#A50026", "zh-tw": "#1F4E79",
     }
     LANG_MARKER = {
         "en": "o", "ru": "^", "uk": "s",
         "he": "s", "ar": "^", "es": "^",
         "hi": "^", "ur": "s", "zh": "^",
+        "zh-cn": "^", "zh-tw": "s",
     }
 
     fig, ax = plt.subplots(figsize=(12, max(4.5, 0.45 * len(models))),
@@ -212,70 +217,109 @@ def render_conflict_figure(event: str, lex: StanceLexicon,
     plt.close(fig)
 
 
-def render_5panel_figure(per_conflict: dict[str, tuple[StanceLexicon, list[dict]]],
-                          out_path: Path) -> None:
-    """Cross-conflict small multiples — one panel per conflict."""
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    sns.set_theme(style="white", context="talk", font_scale=0.75)
+def _draw_stance_panel(ax, event: str, lex: StanceLexicon,
+                        summary: list[dict], is_lhs: bool) -> None:
+    """Draw one stance-axis panel into the supplied axes.
 
-    events = list(per_conflict.keys())
-    n = len(events)
-    fig, axes = plt.subplots(1, n, figsize=(4.2 * n, 6.5),
-                              constrained_layout=True)
-    if n == 1:
-        axes = [axes]
-
+    `is_lhs` toggles the larger marker / label sizes used on the headline
+    left-hand panel; the four RHS comparison panels use compact sizing.
+    """
     LANG_COLOUR = {
         "en": "#0F172A", "ru": "#A50026", "uk": "#1F4E79",
         "he": "#1F4E79", "ar": "#A50026", "es": "#A50026",
         "hi": "#A50026", "ur": "#1F4E79", "zh": "#A50026",
+        "zh-cn": "#A50026", "zh-tw": "#1F4E79",
     }
     LANG_MARKER = {
         "en": "o", "ru": "^", "uk": "s", "he": "s",
         "ar": "^", "es": "^", "hi": "^", "ur": "s", "zh": "^",
+        "zh-cn": "^", "zh-tw": "s",
     }
+    label_fs = 16 if is_lhs else 11
+    tick_fs = 13 if is_lhs else 9
+    marker_s = 180 if is_lhs else 75
+    title_fs = 20 if is_lhs else 14
 
-    for ax, event in zip(axes, events):
-        lex, summary = per_conflict[event]
-        langs = sorted({r["lang"] for r in summary})
-        grid: dict[str, dict[str, float]] = defaultdict(dict)
-        for r in summary:
-            grid[r["model"]][r["lang"]] = r["mean"]
-        models = sorted(grid.keys())
-        def spread(m: str) -> float:
-            vals = [grid[m].get(l) for l in langs if l in grid[m]]
-            return max(vals) - min(vals) if len(vals) >= 2 else 0.0
-        models = sorted(models, key=lambda m: -spread(m))
+    langs = sorted({r["lang"] for r in summary})
+    grid: dict[str, dict[str, float]] = defaultdict(dict)
+    for r in summary:
+        grid[r["model"]][r["lang"]] = r["mean"]
+    models = sorted(grid.keys())
 
-        for i, m in enumerate(models):
-            vals = [grid[m][l] for l in langs if l in grid[m]]
-            if len(vals) >= 2:
-                ax.plot([min(vals), max(vals)], [i, i],
-                         color="#CBD5E1", linewidth=1.2, zorder=1,
-                         solid_capstyle="round")
-            for lang in langs:
-                v = grid[m].get(lang)
-                if v is None:
-                    continue
-                ax.scatter(v, i, s=70,
-                            color=LANG_COLOUR.get(lang, "#475569"),
-                            marker=LANG_MARKER.get(lang, "o"),
-                            edgecolor="white", linewidth=0.8, zorder=3)
+    def spread(m: str) -> float:
+        vals = [grid[m].get(l) for l in langs if l in grid[m]]
+        return max(vals) - min(vals) if len(vals) >= 2 else 0.0
+    models = sorted(models, key=lambda m: -spread(m))
 
-        ax.set_yticks(np.arange(len(models)))
-        ax.set_yticklabels(models, fontsize=7)
-        ax.invert_yaxis()
-        ax.axvline(0, color="#475569", linewidth=0.7, linestyle=":", zorder=0)
-        ax.set_xlabel(f"{lex.pole_b_label[:5]} ← • → {lex.pole_a_label[:5]}",
-                       fontsize=8, color="#0F172A")
-        for s in ("top", "right", "left"):
-            ax.spines[s].set_visible(False)
-        ax.tick_params(axis="y", length=0)
-        ax.tick_params(axis="x", colors="#475569", labelsize=7)
-        # Panel label (event name) inside top-left
-        ax.text(0.02, 1.02, event, transform=ax.transAxes,
-                fontsize=10, color="#0F172A", weight="700", va="bottom")
+    for i, m in enumerate(models):
+        vals = [grid[m][l] for l in langs if l in grid[m]]
+        if len(vals) >= 2:
+            ax.plot([min(vals), max(vals)], [i, i],
+                     color="#CBD5E1",
+                     linewidth=1.6 if is_lhs else 1.0, zorder=1,
+                     solid_capstyle="round")
+        for lang in langs:
+            v = grid[m].get(lang)
+            if v is None:
+                continue
+            ax.scatter(v, i, s=marker_s,
+                        color=LANG_COLOUR.get(lang, "#475569"),
+                        marker=LANG_MARKER.get(lang, "o"),
+                        edgecolor="white",
+                        linewidth=0.9 if is_lhs else 0.6, zorder=3)
+
+    ax.set_yticks(np.arange(len(models)))
+    ax.set_yticklabels(models, fontsize=tick_fs)
+    ax.invert_yaxis()
+    ax.axvline(0, color="#475569",
+                linewidth=0.9 if is_lhs else 0.6,
+                linestyle=":", zorder=0)
+    ax.set_xlabel(f"{lex.pole_b_label[:5]} ← • → {lex.pole_a_label[:5]}",
+                   fontsize=label_fs, color="#0F172A")
+    for s in ("top", "right", "left"):
+        ax.spines[s].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+    ax.tick_params(axis="x", colors="#475569", labelsize=tick_fs)
+    # Panel title (event slug) inside top-left
+    ax.text(0.02, 1.02, event, transform=ax.transAxes,
+             fontsize=title_fs, color="#0F172A", weight="700", va="bottom")
+
+
+def render_5panel_figure(per_conflict: dict[str, tuple[StanceLexicon, list[dict]]],
+                          out_path: Path) -> None:
+    """Cross-conflict figure: 1 large headline panel on the LHS + 2x2 RHS grid.
+
+    The LHS panel is the Russo-Ukrainian pair (the project's primary case study
+    and the smallest-gap surprise from the cross-conflict ranking). The four
+    comparison conflicts (India-Pakistan, Israel-Palestine, Taiwan strait,
+    Falklands) sit in a 2x2 grid on the right. Replaces the previous five
+    equally-sized small-multiples layout, which was too cramped to read at
+    deck or thesis-page scale.
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.gridspec as mgs
+    import seaborn as sns
+    sns.set_theme(style="white", context="talk", font_scale=0.75)
+
+    LHS_KEY = "ru_uk_core"
+    RHS_ORDER = ["india_pakistan", "israel_palestine",
+                  "taiwan_strait", "falklands"]
+    # Fall back gracefully if LHS_KEY missing.
+    lhs_key = LHS_KEY if LHS_KEY in per_conflict else next(iter(per_conflict))
+    rhs_keys = [k for k in RHS_ORDER if k in per_conflict and k != lhs_key]
+
+    fig = plt.figure(figsize=(22, 12), constrained_layout=True)
+    gs = mgs.GridSpec(2, 3, figure=fig, width_ratios=[2.3, 1.0, 1.0])
+
+    ax_lhs = fig.add_subplot(gs[:, 0])
+    lex, summary = per_conflict[lhs_key]
+    _draw_stance_panel(ax_lhs, lhs_key, lex, summary, is_lhs=True)
+
+    rhs_positions = [(0, 1), (0, 2), (1, 1), (1, 2)]
+    for key, (r, c) in zip(rhs_keys, rhs_positions):
+        ax = fig.add_subplot(gs[r, c])
+        lex, summary = per_conflict[key]
+        _draw_stance_panel(ax, key, lex, summary, is_lhs=False)
 
     fig.savefig(out_path, dpi=200, bbox_inches="tight", facecolor="white")
     plt.close(fig)
@@ -283,14 +327,37 @@ def render_5panel_figure(per_conflict: dict[str, tuple[StanceLexicon, list[dict]
 
 # ── Main ─────────────────────────────────────────────────────────────────
 def main() -> None:
+    import argparse
+    ap = argparse.ArgumentParser(
+        description="exp_021 stance-axis projection sweep")
+    ap.add_argument(
+        "--event", default=None,
+        help="Comma-separated event slugs to project (default = all "
+             "registered lexicons). With a subset, the cross-conflict "
+             "5-panel + ranking CSV are skipped so the committed "
+             "5-conflict deck assets are not clobbered.")
+    args = ap.parse_args()
+
+    base_conflicts = {"ru_uk_core", "india_pakistan", "israel_palestine",
+                      "taiwan_strait", "falklands"}
+    if args.event:
+        selected = [e.strip() for e in args.event.split(",")]
+        unknown = [e for e in selected if e not in LEXICONS]
+        if unknown:
+            raise SystemExit(
+                f"Unknown event(s): {unknown}. Known: {sorted(LEXICONS)}")
+    else:
+        selected = list(LEXICONS)
+
     print("=" * 86)
-    print("exp_021 · Stance-axis projection sweep across 5 conflicts")
+    print(f"exp_021 · Stance-axis projection · events: {', '.join(selected)}")
     print("=" * 86)
 
     per_conflict: dict[str, tuple[StanceLexicon, list[dict]]] = {}
     cross_rank = []
 
-    for event, lex in LEXICONS.items():
+    for event in selected:
+        lex = LEXICONS[event]
         print(f"\n── {event} ── {lex.pole_a_label} ↔ {lex.pole_b_label} "
               f"({len(lex.pole_a_seeds)} pairs)")
 
@@ -339,16 +406,20 @@ def main() -> None:
             "axis_seed_separation": sanity["separation"],
         })
 
-    # Cross-conflict 5-panel
-    panel_path = FIG_DIR / "cross_conflict_5panel.png"
-    render_5panel_figure(per_conflict, panel_path)
-    print(f"\n→ {panel_path}")
-
-    # Cross-conflict ranking
+    # Cross-conflict 5-panel + ranking CSV — only on a full base-set run, so a
+    # subset run (e.g. --event china_us) does not clobber the committed
+    # 5-conflict deck assets.
     cross_rank.sort(key=lambda r: -r["mean_provider_spread"])
-    rank_path = FIG_DIR / "cross_conflict_ranking.csv"
-    write_csv(rank_path, cross_rank)
-    print(f"→ {rank_path}")
+    if base_conflicts.issubset(set(selected)):
+        panel_path = FIG_DIR / "cross_conflict_5panel.png"
+        render_5panel_figure(per_conflict, panel_path)
+        print(f"\n→ {panel_path}")
+
+        rank_path = FIG_DIR / "cross_conflict_ranking.csv"
+        write_csv(rank_path, cross_rank)
+        print(f"→ {rank_path}")
+    else:
+        print("\n(subset run — skipped cross_conflict 5-panel + ranking CSV)")
 
     print("\n" + "=" * 86)
     print("Cross-conflict mean per-provider cross-language gap")

@@ -105,8 +105,6 @@ def plot_by_lang(df: pd.DataFrame, out: Path):
                edgecolor="white", linewidth=0.5)
         bottom += vals
     ax.set_ylabel("Number of responses")
-    ax.set_title("exp_004 Metric 1 · Sonnet stance code distribution by prompt language\n"
-                 "(positive = Russian framing · negative = Ukrainian framing · 0 = neutral · R = refusal)")
     ax.legend(title="code", bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=8)
     plt.tight_layout()
     plt.savefig(out, dpi=150)
@@ -128,8 +126,6 @@ def plot_qid_x_lang(df: pd.DataFrame, out: Path):
             txt = f"{v:+.2f}" if not np.isnan(v) else "·"
             ax.text(j, i, txt, ha="center", va="center", fontsize=8,
                     color="black")
-    ax.set_title("exp_004 Metric 1 · mean Sonnet stance score by (question × language)\n"
-                 "(positive ⇒ Russian framing · negative ⇒ Ukrainian framing)")
     plt.colorbar(im, ax=ax, shrink=0.85)
     plt.tight_layout()
     plt.savefig(out, dpi=150)
@@ -151,9 +147,6 @@ def plot_model_x_lang(df: pd.DataFrame, out: Path):
             v = piv.values[i, j]
             txt = f"{v:+.2f}" if not np.isnan(v) else "·"
             ax.text(j, i, txt, ha="center", va="center", fontsize=8, color="black")
-    ax.set_title("exp_004 Metric 1 · mean Sonnet stance score by (model × language)\n"
-                 "(positive ⇒ Russian framing · negative ⇒ Ukrainian framing)",
-                 fontsize=10)
     plt.colorbar(im, ax=ax, shrink=0.7)
     plt.tight_layout()
     plt.savefig(out, dpi=150)
