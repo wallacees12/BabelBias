@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.DS_Store
+report/main.aux
+report/main.log
+report/main.out
+report/main.toc
+report/main.bbl
+report/main.blg
+report/main.fls
+report/main.fdb_latexmk
+report/logos/signature.png

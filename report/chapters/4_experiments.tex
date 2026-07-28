@@ -1,0 +1,1228 @@
+\chapter{Experiments and results}\label{ch:experiments}
+
+This chapter presents the experiments as an argument rather than in
+the order they ran: the core finding and its content--language
+decomposition first (\S\ref{sec:exp_001}--\ref{sec:exp_001_debiased}),
+then three attempts to kill it as a measurement artefact
+(\S\ref{sec:exp_015}--\ref{sec:exp_016}), then its generalisation
+across conflict families and the metrics that recover what cosine
+averages away (\S\ref{sec:exp_011}--\ref{sec:exp_021}), and finally
+the event-ladder corpus that varies time within a conflict
+(\S\ref{sec:exp_007}).
+
+\section{Cross-lingual ingroup pull on the Russo-Ukrainian
+  case}\label{sec:exp_001}\label{sec:exp_002}\label{sec:exp_014}
+
+Across the fourteen cosine-eligible providers spanning six
+regulatory regimes, responses to the nine-question Russo-Ukrainian
+prompt bank embed closer to the own-language Wikipedia anchor than
+to the other-language anchors. Averaged over the matrix, the
+row-centred diagonal pull is $+0.175$ on English, $+0.043$ on
+Russian, and $+0.026$ on Ukrainian
+(Table~\ref{tab:exp_014_headline};
+Figure~\ref{fig:exp_014_forest}). The EN ${>}$ RU ${>}$ UK
+ordering is unanimous at provider level: the English diagonal
+exceeds the Russian, and the Russian the Ukrainian, in fourteen of
+fourteen providers. Thirteen of the fourteen are positive on all
+three diagonals; the exception is the locally hosted
+TAIDE-Llama3-8B, whose Russian ($-0.004 \pm 0.012$) and Ukrainian
+($-0.033 \pm 0.029$) diagonals sit at or below zero --- a first
+sight of the small-open-weight scope condition developed in
+\S\ref{sec:exp_016}. Under the two-level cluster bootstrap of
+\S\ref{sec:stats} the matrix means carry 95\% intervals of
+$[+0.153, +0.200]$ (EN), $[+0.016, +0.067]$ (RU), and
+$[+0.003, +0.048]$ (UK); the EN advantage is decisively resolved
+(EN$-$RU difference interval $[+0.10, +0.17]$), while the RU--UK
+\emph{magnitude} difference is not ($[-0.02, +0.05]$). The
+RU ${>}$ UK ordering is directionally consistent across all
+fourteen providers but statistically unresolved at the matrix
+level; because every provider answers the same nine questions,
+provider-level unanimity adds little evidence beyond the
+question-resampled interval, and the ordering is read as
+suggestive rather than established. Because four of the nine
+questions share the annexation anchor, the stricter resampling unit
+is the anchor (six blocks) rather than the question; under an
+anchor-block bootstrap the English interval is essentially
+unchanged ($[+0.15, +0.19]$) while the Russian interval widens to
+touch zero ($[-0.00, +0.07]$) and the Ukrainian stays marginally
+positive ($[+0.00, +0.05]$) --- the contested-language raw pulls
+are small enough that their resolution depends on what one treats
+as the independent topical unit. The permutation test of \S\ref{sec:stats}
+places the ingroup-pull association far outside its null: the
+observed grand mean row-centred diagonal ($+0.081$) exceeds the
+largest of $10{,}000$ label-shuffled replicates ($+0.019$;
+$p < 10^{-4}$). On raw embeddings this null is partly trivial ---
+shuffling response-language labels breaks the same-script pairing,
+so shared script and lexicon alone push the observed diagonal above
+it. The substantive version runs the identical permutation on the
+language-axis-projected embeddings, where that trivial route is
+removed: the debiased association remains far outside its null
+(observed $+0.064$ against a null maximum of $+0.015$;
+$p < 10^{-4}$).
+
+\begin{table}[!htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrr}
+    \hline
+    Provider & EN pull & RU pull & UK pull \\
+    \hline
+    \texttt{c4ai-aya-expanse-32b}       & $+0.192 \pm 0.025$ & $+0.056 \pm 0.027$ & $+0.045 \pm 0.023$ \\
+    \texttt{command-r7b-arabic-02-2025} & $+0.188 \pm 0.023$ & $+0.051 \pm 0.031$ & $+0.031 \pm 0.032$ \\
+    \texttt{grok-3-mini}                & $+0.184 \pm 0.026$ & $+0.051 \pm 0.029$ & $+0.029 \pm 0.026$ \\
+    \texttt{ernie-4.5-300b-a47b}        & $+0.182 \pm 0.025$ & $+0.050 \pm 0.034$ & $+0.034 \pm 0.019$ \\
+    \texttt{claude-haiku-4-5}           & $+0.182 \pm 0.022$ & $+0.040 \pm 0.027$ & $+0.016 \pm 0.025$ \\
+    \texttt{gpt-4o-mini}                & $+0.180 \pm 0.024$ & $+0.058 \pm 0.032$ & $+0.029 \pm 0.028$ \\
+    \texttt{gemini-2.5-flash}           & $+0.180 \pm 0.029$ & $+0.048 \pm 0.032$ & $+0.040 \pm 0.017$ \\
+    \texttt{glm-4.5}                    & $+0.175 \pm 0.030$ & $+0.048 \pm 0.032$ & $+0.039 \pm 0.020$ \\
+    \texttt{ALLaM-7B} (local)           & $+0.173 \pm 0.023$ & $+0.031 \pm 0.015$ & $+0.002 \pm 0.031$ \\
+    \texttt{qwen-plus}                  & $+0.172 \pm 0.024$ & $+0.046 \pm 0.032$ & $+0.036 \pm 0.022$ \\
+    \texttt{jamba-mini-2-2026-01}       & $+0.171 \pm 0.021$ & $+0.040 \pm 0.025$ & $+0.033 \pm 0.029$ \\
+    \texttt{deepseek-chat}              & $+0.168 \pm 0.023$ & $+0.045 \pm 0.028$ & $+0.031 \pm 0.015$ \\
+    \texttt{TAIDE-Llama3-8B} (local)    & $+0.156 \pm 0.026$ & $-0.004 \pm 0.012$ & $-0.033 \pm 0.029$ \\
+    \texttt{mercury-2}                  & $+0.149 \pm 0.042$ & $+0.037 \pm 0.031$ & $+0.033 \pm 0.018$ \\
+    \hline
+    Matrix mean                       & $+0.175$           & $+0.043$           & $+0.026$           \\
+    \hline
+  \end{tabular}}
+  \caption[Per-provider ingroup pull on the Russo-Ukrainian
+    case]{Row-centred diagonal ingroup pull per provider and
+    language on the \texttt{ru\_uk\_core} sweep, ordered by EN pull.
+    Intervals are 95\% normal-approximation CIs across the nine
+    per-question row-centred diagonal means ($n{=}9$ topical
+    clusters per cell), following the effective-sample-size policy
+    of \S\ref{sec:stats}; the ten samples within a question are not
+    treated as independent draws for topic-level inference. Source:
+    \texttt{exp\_014\_qclustered\_cis.csv} (OpenAI panel; the
+    four-embedder appendix table,
+    Appendix~\ref{sec:appendix_exp_015_table}, reports within-cell
+    dispersion on pooled cosines instead).}
+  \label{tab:exp_014_headline}
+\end{table}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{exp_014_forest.png}
+  \caption[Per-provider ingroup pull, forest view]{Forest view of
+    Table~\ref{tab:exp_014_headline}: row-centred diagonal ingroup
+    pull per provider and language, with question-clustered 95\%
+    CIs ($n{=}9$ per cell), providers ordered
+    by English pull. Dotted vertical lines mark the per-language
+    matrix means. The EN ${>}$ RU ${>}$ UK ordering is unanimous
+    across all fourteen providers; the only cells at or below zero
+    are TAIDE's Russian and Ukrainian diagonals, with ALLaM's
+    Ukrainian cell just above zero.}
+  \label{fig:exp_014_forest}
+\end{figure}
+
+Provider identity moves the response geometry far less than
+question or language do. Defining agreement as the mean raw cosine
+between two providers' samples on the same (question, language)
+cell, averaged over the 27 cells, cross-provider agreement among
+the twelve frontier-scale providers spans $0.65$--$0.85$ (mean
+$0.77$), approaching those same providers' within-provider
+self-agreement of $0.77$--$0.92$ (computed identically between a
+provider's own ten samples, identity pairs excluded). The two
+locally hosted 7B models fall outside both ranges (self-agreement
+$0.55$ and $0.56$; every pair involving one of them sits at
+$0.44$--$0.57$) --- the stylistic-fingerprint finding of
+\S\ref{sec:exp_016}, visible already here. Self-agreement is a
+temperature-dependent quantity --- all sweeps sample at
+temperature $1.0$, which compresses it and thereby shrinks the gap
+to cross-provider agreement --- so the comparison is tilted
+\emph{toward} provider interchangeability rather than neutral, and
+is read with that in mind. At frontier scale the
+data support a one-phenomenon reading rather than twelve
+provider-specific phenomena. Re-running
+the five-provider pilot at twice the original token cap and
+re-embedding gives a mean absolute change of under $0.003$ in the
+row-centred cells across the $5\times 3\times 3$ cube --- the
+headline is invariant to sample-length saturation (per-cell deltas
+in Appendix~\ref{sec:appendix_token_budget_delta}).
+
+A geometric check closes off one further alternative reading.
+Because the diagonal is row-centred, its attainable maximum is set
+by the anchors alone: a response identical to its own-language
+anchor would score one minus that anchor row's mean, so mutually
+similar anchors mechanically compress the attainable pull. The
+anchor--anchor cosines are asymmetric across languages (EN--RU
+$0.68$, EN--UK $0.60$, RU--UK $0.72$ under the primary embedder),
+giving mechanical ceilings of $0.24$ (EN), $0.20$ (RU), and $0.23$
+(UK). The geometry therefore contributes to the English advantage,
+but it cannot produce the observed pattern: the ceiling spread
+($0.01$--$0.04$) is a fraction of the observed spread
+($0.13$--$0.15$); the ceilings place Ukrainian \emph{above}
+Russian while the observed diagonals run the other way; and
+ceiling-normalised diagonals preserve EN ${\gg}$ RU ${>}$ UK
+($73\%$, $21\%$, and $11\%$ of ceiling attained). Anchor
+geometry is a minor scaling factor on the headline, not its
+source.
+
+\section{Content versus language: the debiasing
+  decomposition}\label{sec:exp_001_debiased}
+
+Projecting onto the orthogonal complement of the language subspace
+(\S\ref{sec:debiasing}) separates content-driven from
+language-driven pull. Across the fourteen-provider matrix the
+English diagonal collapses by $12\%$ ($+0.175 \to +0.153$), the
+Russian diagonal by $28\%$ ($+0.043 \to +0.031$), and the Ukrainian
+diagonal by $66\%$ ($+0.026 \to +0.009$), with the two locally
+hosted 7B providers' debiased Ukrainian pull at or below zero.
+Rerunning the two-level cluster bootstrap of \S\ref{sec:stats} on
+the projected embeddings puts the debiased English diagonal at
+$[+0.13, +0.18]$ --- decisively positive after the control --- the
+debiased Russian residual at $[+0.005, +0.06]$ --- marginally
+positive --- and the debiased Ukrainian residual at
+$[-0.02, +0.03]$, which includes zero: after removing the language
+axis, a genuine Ukrainian content pull can no longer be
+distinguished from none at all, and the Russian residual is
+resolved only barely (the response-fitted bracket below puts it at
+$-0.001$). Refitting the language axis from
+the response set's own per-language centroids --- the bracket
+motivated in \S\ref{sec:debiasing}, which removes response-register
+language variance the Wikipedia-fitted axis may miss --- pushes the
+projection further in the same direction: EN $+0.101$, RU
+$-0.001$, UK $-0.020$. Under either fit the qualitative reading is
+the same and the second fit makes it sharper. The
+EN ingroup pull is largely content-driven; most of the UK pull was
+a lexical artefact of the shared script --- and the residual third
+that survives the control-fitted projection is itself within noise,
+a reading the
+cross-embedder panel of \S\ref{sec:exp_015} further narrows.
+
+A second view from the off-topic same-language baseline of
+\S\ref{sec:topic_vs_lang} converges on the same reading. Topic lift
+is strictly positive in every (event, language) cell and the
+asymmetry across the three languages tracks the lexical-vs-content
+cut.
+
+\section{Methodology robustness}\label{sec:exp_015}\label{sec:exp_015_debiased}\label{sec:exp_017}
+
+Re-embedding the full response and anchor corpus under three further
+embedders --- Alibaba \verb|text-embedding-v3|, Google
+\verb|gemini-embedding-001|, and Yandex \verb|text-search-doc| ---
+gives a four-way panel. The \emph{sign} of cross-lingual ingroup
+pull is method-robust: every per-language mean diagonal stays
+positive under all four embedders (at per-provider granularity the
+one exception is the same TAIDE cells already flagged in
+Table~\ref{tab:exp_014_headline}). The \emph{magnitude ordering} EN ${\gg}$ RU ${>}$ UK is
+not: Alibaba and Yandex flatten it to EN ${\approx}$ UK ${>}$ RU,
+and Gemini compresses every diagonal toward zero with English only
+marginally ahead. The anchor geometry of \S\ref{sec:exp_001}
+accounts for much of this magnitude shrinkage --- embedders whose
+anchors are mutually closer have lower mechanical ceilings
+(Gemini's anchor--anchor cosines run $0.86$--$0.92$, capping its
+diagonals near $0.07$--$0.09$) --- a further reason to compare
+orderings rather than magnitudes across embedders.
+The Russian-trained Yandex embedder gives Ukrainian responses
+\emph{more} pull than Russian responses ($+0.090$ vs $+0.042$),
+falsifying the naive ``Russian-corpus embedder would inflate RU''
+rebuttal.
+
+Cross-embedder debiasing complicates the
+\S\ref{sec:exp_001_debiased} reading. Under
+Alibaba and Yandex the Ukrainian pull \emph{survives} the
+projection, so the lexical-vs-content split is itself a property of
+the OpenAI embedding space rather than of the LLM responses.
+
+A separate challenge comes from \citet{qi2023crosslingual}, who
+report Russian--Ukrainian BLOOM-tokenizer overlap of $0.76$ ---
+predicting the cluster fusion as a vocabulary artefact. Measuring
+pairwise tokenizer overlap on the universal-control corpus for the
+three inspectable embedder tokenizers gives scores well below the
+BLOOM reference (\verb|cl100k| $0.53$, Qwen-proxy $0.42$, Cohere
+$0.31$). Re-running the unsupervised analysis under the
+lowest-overlap embedder redistributes which questions fuse but
+preserves total fusion magnitude. Subword-vocabulary overlap is
+ruled out as the dominant cause.
+
+\section{Unsupervised structure recovers the experimental
+  design}\label{sec:exp_016}\label{sec:exp_016_outliers}\label{sec:exp_016_anchor_projection}
+
+Running EVoC \citep{mcinnes2024evoc} on the full response set
+\emph{without} provider, question, or language labels produces
+a resolution layer of twenty-nine clusters against the twenty-seven
+(question $\times$ language) cells of the design. The reported
+layer is simply the one nearest the design count --- a
+presentational choice; the claim rests on the purity and
+association values, not the cluster count. Per-cluster purity is
+high on question ($\geq 0.91$) and language ($\geq 0.74$) and low
+on provider ($0.13$--$0.19$); because raw purity is not comparable
+across axes with different numbers of classes, the comparison is
+scored by adjusted mutual information (\S\ref{sec:stats}), which
+gives question $0.66$, language $0.36$, and provider $0.08$ ---
+the provider axis carries several times less cluster information
+than either design axis. The result holds across all four
+embedders, whose chosen layers land near the design count
+(19--35 clusters) with the same purity profile
+(Appendix~\ref{sec:appendix_evoc_purity}).
+
+Three provider outliers complicate the reading and each becomes its
+own finding. YandexGPT collapses into a tight four-cluster pocket
+rather than spreading across the (qid $\times$ language) cells.
+TAIDE-Llama3-8B and ALLaM-7B sit at $59\%$ and $37\%$ on a
+top-three-cluster concentration ranking against $12\%$--$24\%$ for
+the other twelve providers. The scope condition this evidences is
+operational rather than a parameter-count law: the two models that
+carry stylistic fingerprints are the two \emph{locally hosted}
+open-weight 7B models, while \verb|command-r7b| --- also a 7B
+open-weight model, but served through its provider's API --- sits
+inside the frontier band on every geometry measure here (and
+resurfaces separately as the largest stance-swing outlier in
+\S\ref{sec:exp_004}). ``Frontier-scale'' in this thesis therefore
+names the twelve providers that behave homogeneously on the
+embedding geometry, and provider-agnostic claims are scoped to that
+empirically defined set rather than to a parameter threshold.
+
+Projecting the Wikipedia anchors as points inside the EVoC fit
+closes the loop with cosine: anchors fall into the cluster of their
+matched-language responses, which is the structural form of
+positive ingroup pull. Two disclosure notes bound this validation:
+it is available for the four of nine questions whose anchors landed
+in a real cluster (the q01 and q05 anchors fall into EVoC's noise
+partition, and the three stance-slot questions share the annexation
+anchor and split across stance-bound clusters), and the two metrics
+share the embedding space even though they share no anchor
+arithmetic.
+
+The projection also exposes a structural fusion that the diagonal
+cosine conceals. On Crimea, Maidan, and Bandera the \emph{Russian
+and Ukrainian Wikipedia anchors land in a single joint cluster},
+and both Russian and Ukrainian responses occupy it at
+$82$--$89\%$ --- symmetrically, since it is one cluster --- while
+every English anchor sits in a separate English-response cluster.
+(On Crimea the Ukrainian anchor falls into the noise partition, so
+the Ukrainian responses' $87\%$ co-clustering there is with the
+Russian anchor by default.) The fusion is a property of how the
+embedding space treats the Russian- and Ukrainian-language
+treatments of these events jointly, not a directional claim that
+Ukrainian responses prefer the Russian treatment over their own ---
+the clustering cannot distinguish those readings when the two
+anchors are inseparable. It is this \emph{fusion}, directional or
+not, that the tokenizer-overlap control of \S\ref{sec:exp_017} was
+built to challenge --- \citet{qi2023crosslingual} predict exactly
+this pattern from subword-vocabulary overlap alone. That the
+pattern survives at matched cluster resolution under the
+lowest-overlap embedder is what licenses reading it as
+content-level fusion rather than vocabulary leakage; the
+directional Russian-to-Ukrainian reading rests on the debiasing
+decomposition (\S\ref{sec:exp_001_debiased}), not on this
+projection. Figure~\ref{fig:exp_016_anchor_map} shows
+the projection.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{exp_016_anchor_map.png}
+  \caption[Anchor projection in the unsupervised embedding
+    map]{UMAP projection of the 3{,}779 cosine-eligible responses
+    (points, coloured by response language) with the eighteen
+    Wikipedia anchors injected as stars (coloured by anchor
+    language; labels merge anchors that land at the same
+    position). Every English anchor sits in a separate
+    English-response cluster, while the Russian and Ukrainian
+    anchors for Bandera, Maidan, and MH17 land on top of each
+    other inside mixed Russian--Ukrainian response regions.
+    Visual adjacency in this projection and EVoC cluster
+    membership are related but not identical: the MH17 anchor pair
+    overlaps here yet sits in EVoC's noise partition, while the
+    annexation pair --- visually separate --- shares a cluster by
+    the co-clustering statistics in the text. The fused
+    joint-cluster cases are Crimea, Maidan, and Bandera.}
+  \label{fig:exp_016_anchor_map}
+\end{figure}
+
+\section{What cosine misses}\label{sec:exp_011}\label{sec:exp_003}\label{sec:mercury_failure}
+
+The magnitude metric is silent on three categorically distinct
+phenomena visible in the sweep.
+
+YandexGPT returned the same Russian content-filter boilerplate on
+every one of $270$ prompts across three languages, with no
+successful response in any cell. The same model answers neutral
+prompts in EN and RU without difficulty, so the refusal is
+domain-specific. The cosine pipeline treats the response text as
+null; the finding surfaces only because EVoC clustering produces a
+tight pure-model cluster of identical refusal embeddings. This
+recovers the embedding-space signature of structural censorship
+inheritance that \citet{urman2025silence} predict but cannot verify
+in their Western-only data.
+
+Extending the Yandex sweep across the five conflict families of
+\S\ref{sec:exp_006} --- a dedicated Yandex-only refusal sweep at
+ten repeats per cell, giving $270$ calls per three-language family
+and $180$ per two-language family --- shows the filter is graded
+rather than uniform. Refusal varies steeply across families and is
+highest where Russian state narratives are most directly
+implicated: $100\%$ on the
+imaginary Russo-Ukrainian event ($45/45$), $77\%$ on
+Israel--Palestine ($208/270$), $52\%$ on India--Pakistan
+($140/270$), $22\%$ on the Falklands ($40/180$), and $6\%$ on the
+Taiwan strait ($10/180$). (The interest ordering is a descriptive
+reading of the observed rates, not an ex-ante quantity; no
+independent proxy for Russia-state interest is fitted.) Within events the filter is typed by
+question form: the two one-sided-defence slots (q07, q08) are
+filtered at ${\geq}50\%$ in every non-imaginary family, and at the
+low-interest limit they are the \emph{only} filtered slots --- the
+Falklands sweep filters both POV questions at $20/20$ and nothing
+else, and Taiwan filters half of the pro-PRC POV slot and nothing
+else. The filter is neither random nor domain-uniform; it is a
+policy with a topology, and \S\ref{sec:yandex_limit} takes up what
+that topology implies. Figure~\ref{fig:exp_022_cascade} shows both
+views of the gradient.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{exp_022_yandex_refusal_cascade.png}
+  \caption[YandexGPT refusal cascade]{The YandexGPT content filter
+    across five conflict families. Left: share of prompts refused
+    per family, ordered by decreasing Russia-state interest, with
+    refused/total counts inside the bars. Right: within-family
+    refusal rate split into the two one-sided-defence slots
+    (q07/q08, pooled) versus the remaining seven questions; at the
+    low-interest limit (Falklands, Taiwan) only the POV slots are
+    filtered. Bars use a refusal-intensity gradient rather than the
+    family palette.}
+  \label{fig:exp_022_cascade}
+\end{figure}
+
+Mercury-2, the US-trained diffusion LLM in the matrix, exhibits
+language-conditional topic avoidance. Ten Mercury-2 responses per
+language to the ``little green men'' question were coded against a
+pre-specified (repository-frozen) four-level Crimea-coverage rubric (2~Primary /
+1~Secondary / 0~Absent / R~Refusal) by \verb|claude-sonnet-4-6| at
+temperature zero, with file order shuffled before coding; since the
+coder reads the response text, the response language itself is
+necessarily visible to it. The medians match the pre-specified
+hypothesis exactly: EN $=1$ (Secondary), RU $=0$ (Absent), UK $=2$
+(Primary). Ukrainian responses lead with the Crimea framing in
+$9/10$ cases (the tenth is a refusal); Russian responses stay in
+sci-fi or folklore framings in $7/10$ and reach Primary once, so
+the avoidance is pronounced but not absolute. Same model, same
+temperature, same question in three translations --- three
+willingness levels to engage with the topic. The cosine number
+averages this away.
+
+The 7B-locals stylistic-fingerprint result from
+\S\ref{sec:exp_016} is the third
+category, reframed here as a scope condition: any
+provider-agnostic claim in the chapter applies to frontier-scale
+models only.
+
+\section{Imaginary content separates direction from
+  divergence}\label{sec:exp_004}\label{sec:exp_004_metric1}\label{sec:exp_004_metric2}\label{sec:two_shapes}
+
+The cosine metric measures distance to a Wikipedia anchor the model
+has plausibly read in training. The imaginary-conflict pilot
+removes the anchor altogether by replacing the case study with a
+fictional Russo-Ukrainian cross-border incident
+(\emph{Tarasenko Bridge}, 14 March 2024, invented place names).
+Five mirrored questions across the fourteen cosine-eligible
+providers with three repeats per cell target $630$ completions;
+$628$ return text. The two missing cells are Mercury-2 completions
+that returned zero visible tokens with
+\verb|finish_reason="length"| --- the diffusion architecture spent
+its token budget on internal denoising --- and are retained as data
+rather than re-rolled.
+
+The pre-specified stance code (frozen in the repository before
+scoring; judge
+\verb|claude-sonnet-4-6|, disjoint from the swept-model set) scores
+each response on a $-2/+2$ rubric whose sign convention is
+\emph{positive = Russian-ward, negative = Ukrainian-ward}; the same
+convention is used for every stance-judge number in this thesis
+unless flagged otherwise. It codes $84\%$ of scored responses
+neutral ($79\%$ of all completions; the difference is refusals,
+which are excluded from scoring), with the residual tilting
+\emph{Ukrainian-ward}: per-language means EN $-0.092$, RU $+0.010$,
+UK $-0.170$. The originally-hypothesised ``models default to a
+Russian framing on imaginary content'' is falsified. A second
+frontier judge from a different provider reproduces the code's
+directional signs on a stratified sample ($\kappa = 0.78$, no sign
+inversions; \S\ref{sec:threat_single_judge}).
+
+A within-model anchor-free divergence metric on the same response
+set surfaces the sharper claim. Free-form prose has the
+\emph{highest} cross-lingual content divergence in the bank
+($2.86\times$ same-language baseline) but the \emph{lowest} stance
+direction (mean $0.00$): models confabulate different things per
+language without picking a side. Direct attribution has the
+inverse: low content divergence ($1.73\times$) and the strongest
+directional pull (UK mean $-0.56$, Ukrainian-ward). Bias on
+imaginary content has
+two distinct shapes --- \emph{content divergence without direction}
+in free-form prose and \emph{directional commitment without content
+divergence} in attribution. The literal national-stance hypothesis
+collapses both into one and misses the structure. One provider
+(\verb|command-r7b-arabic-02-2025|) shows the largest single-model
+swing: a Russian-prompt mean of $+0.47$ (Russian-ward) against a
+Ukrainian-prompt mean of $-0.60$ (Ukrainian-ward), a $1.07$-point
+swing on the same fictional event.
+Figure~\ref{fig:exp_004_two_shapes} plots the dissociation.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.85\linewidth]{exp_004_two_shapes.png}
+  \caption[Two shapes of bias on imaginary content]{The five
+    imaginary-conflict questions plotted by cross-lingual content
+    divergence (as a multiple of the same-language baseline,
+    Metric~2) against the largest per-language $|$stance
+    mean$|$ (Metric~1). The free-form news-report question sits
+    alone at maximal divergence with zero direction; the
+    attribution questions (responsibility, belongs-to) sit at
+    minimal divergence with the strongest direction. Content
+    divergence and directional commitment dissociate by question
+    form.}
+  \label{fig:exp_004_two_shapes}
+\end{figure}
+
+\section{The pattern generalises across five
+  conflicts}\label{sec:exp_006}\label{sec:exp_006_debiased}
+
+The fourteen-provider sweep applies with no code changes to four
+further conflict families: Israel--Palestine (EN/HE/AR),
+India--Pakistan (EN/HI/UR), Taiwan strait (EN/ZH), Falklands
+(EN/ES). Total spend $\$5{.}62$ across $9{,}023$ calls at $N{=}5$
+samples per cell.
+
+The English diagonal ranges from $+0.32$ on India--Pakistan to
+$+0.05$ on the Falklands; in descending order, India--Pakistan
+($+0.32$), Israel--Palestine ($+0.25$), Russo-Ukrainian ($+0.18$),
+Taiwan ($+0.11$), Falklands ($+0.05$). These are raw values, and
+the mechanical-ceiling correction of \S\ref{sec:exp_001} matters
+across families even more than across embedders, because
+anchor--anchor similarity varies sharply by family (English
+ceilings: India--Pakistan $0.46$, Israel--Palestine $0.39$,
+Russo-Ukrainian $0.24$, Taiwan $0.19$, Falklands $0.13$).
+Ceiling-normalised, the ordering changes: the Russo-Ukrainian case
+rises to the top ($73\%$ of ceiling attained), followed by
+India--Pakistan ($70\%$), Israel--Palestine ($63\%$), Taiwan
+($59\%$), and the Falklands ($37\%$), and the six-fold raw spread
+compresses to under two-fold. Between-family magnitude comparisons
+in this thesis are therefore reported raw but read through the
+ceilings; the raw ranking partly reflects how distinct each
+family's Wikipedia treatments are, not only how strongly models
+pull toward them. Every English diagonal and
+every contested-language diagonal is positive on raw cosine with
+one exception: the Taiwan-strait Chinese cell sits marginally below
+zero ($-0.008$, negative for seven of ten providers), the weakest
+contested-language signal in the sweep. The Falklands near-null
+functions as the falsification
+anchor for the pipeline: the metric does not return a strong signal
+wherever it is pointed. The natural explanation --- that the
+Falklands War is the oldest conflict in this set, and
+\citet{oeberst2020wikipedia}'s Study~2 documents a
+recency--strength gradient --- is the one this chapter initially
+adopted. \S\ref{sec:exp_007} withdraws it.
+
+Cross-event debiasing produces an asymmetric pattern. The English
+signal collapses by only $5\%$--$13\%$ in four of the five families
+--- the central replication of the original Russo-Ukrainian
+content-driven finding --- while the Falklands English signal, the
+smallest in raw terms, collapses by $38\%$: where the raw pull is
+weak, a larger share of it is language rather than content. The
+contested-language signals collapse
+asymmetrically: Hebrew by $96\%$, Ukrainian by $66\%$, Spanish by
+$51\%$; Arabic ($20\%$), Hindi ($37\%$), and Urdu ($31\%$) collapse
+only partially. (Collapse percentages are computed over the nine to
+thirteen providers per family with both raw and debiased analyses
+on disk, not the full fourteen.) The off-topic baseline of \S\ref{sec:topic_vs_lang}
+converges on the same Hebrew-is-language-axis reading: Hebrew has
+the lowest topic lift ($+0.18$) and the highest off-topic baseline
+($0.36$ vs typical $0.10$--$0.16$).
+Figure~\ref{fig:exp_006_dumbbell} shows the full raw-to-debiased
+decomposition, including the Russo-Ukrainian case study of
+\S\ref{sec:exp_001_debiased}, and
+Figure~\ref{fig:exp_006_method_method} cross-plots the two
+disentanglement methods directly: the cells where the language-axis
+projection collapses the pull are the cells with the highest
+same-language floor, with Hebrew the joint outlier on both
+instruments. One uncontrolled alternative should be named: the
+off-topic baseline is a mean cosine against randomly sampled
+same-language control leads, and shorter, more generic leads have
+mechanically higher mutual cosine, so a per-language baseline level
+partly reflects how long that edition's control articles are; the
+Hebrew reading is reported with that possibility open rather than
+excluded.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.9\linewidth]{exp_006_method_vs_method.png}
+  \caption[Two disentanglement methods cross-validated]{The two
+    content-versus-language disentanglement methods cross-validated
+    per (event, language) cell: language-axis debiasing collapse
+    ($x$) against the off-topic same-language baseline ($y$), with
+    dashed guides at the medians. Hebrew sits alone in the
+    language-axis-dominated corner; the English cells cluster at
+    low collapse and a low language floor. The Taiwan-strait
+    Chinese cell is omitted because its raw pull is negative
+    (\S\ref{sec:exp_006}).}
+  \label{fig:exp_006_method_method}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{exp_006_debias_dumbbell.png}
+  \caption[Raw versus debiased pull across the five conflict
+    families]{Raw (filled) versus language-axis-debiased (open)
+    diagonal ingroup pull per (family, language), averaged over the
+    providers with both analyses on disk; annotations give the
+    collapse share. English diagonals (blue) survive debiasing
+    with a $5\%$--$13\%$ collapse everywhere except the weak
+    Falklands signal; contested-language diagonals (red) collapse
+    asymmetrically, from Arabic's $20\%$ to Hebrew's near-total
+    $96\%$. The Taiwan-strait Chinese cell is negative already in
+    raw form.}
+  \label{fig:exp_006_dumbbell}
+\end{figure}
+
+\section{A new metric demotes the flagship
+  conflict}\label{sec:exp_021}
+
+Cosine answers \emph{how topically similar is the response to its
+own-language anchor?} It does not answer \emph{which side's framing
+vocabulary does the response use?} The two have different answers
+on the Second Intifada question for GPT-4o-mini: the Hebrew response
+emphasises Hamas--PLO power struggles and reports Sharon's visit as
+\emph{``perceived as a provocation''}; the Arabic response
+emphasises Israeli settlement policy, ``Israeli forces' violent
+response'', and the same visit \emph{``was a major provocation''}.
+Row-centred cosine between the two against their anchors is
+$+0.004$. The framing difference is invisible to the cosine number.
+
+The paired-edit stance-axis projection of \S\ref{sec:stance_axis}
+is built for exactly this question: a per-conflict axis fitted from
+frozen minimal-edit sentence pairs, onto which each response
+embedding is projected as a signed scalar.
+Table~\ref{tab:exp_021_cross_conflict} reports the per-conflict
+cross-language gap ranking;
+Figure~\ref{fig:exp_021_cross_conflict} shows the per-provider
+spreads. Under the cluster bootstrap of \S\ref{sec:stats}
+(providers $\times$ responses) the mean gaps carry 95\% intervals
+of $[0.107, 0.155]$ (India--Pakistan), $[0.103, 0.138]$
+(Israel--Palestine), $[0.039, 0.078]$ (Taiwan), $[0.039, 0.065]$
+(Falklands), and $[0.028, 0.043]$ (Russo-Ukrainian): the
+Russo-Ukrainian floor is disjoint from the two leaders and touches
+the Taiwan--Falklands pair, so the demotion of the flagship pair is
+resolved against India--Pakistan and Israel--Palestine and
+suggestive against the middle of the table.
+
+\begin{table}[!htbp]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Conflict & Mean gap & Max single-provider gap
+             & Axis seed sep. & $n$ providers \\
+    \hline
+    India--Pakistan        & $+0.131$ & $+0.173$ & $0.47$ & 13 \\
+    Israel--Palestine      & $+0.117$ & $+0.222$ & $0.43$ & 13 \\
+    Taiwan strait          & $+0.056$ & $+0.112$ & $0.52$ & 11 \\
+    Falklands              & $+0.052$ & $+0.075$ & $0.62$ & 13 \\
+    Russo-Ukrainian        & $+0.033$ & $+0.055$ & $0.51$ & 14 \\
+    \hline
+  \end{tabular}
+  \caption[Stance-axis projection across five conflicts]{Per-conflict
+    cross-language stance gap. The mean cross-language gap averages
+    the per-provider max-minus-min stance score over the $n$
+    providers with at least two language cells in the projection
+    data (Yandex included where it answered); axis seed separation
+    is the embedding distance between
+    pole centroids before any response is projected. Bootstrap
+    intervals for the mean gaps are given in the text.}
+  \label{tab:exp_021_cross_conflict}
+\end{table}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{exp_021_cross_conflict_5panel.png}
+  \caption[Stance-axis projection: five-conflict small
+    multiples]{Paired-edit stance projection per provider across the
+    five conflict families. The Russo-Ukrainian pair occupies the
+    large left panel; the four further conflicts sit in the
+    right-hand grid. Each row is one provider (sorted by its
+    cross-language gap); dots are per-language cell means in the
+    canonical language colours (per-panel legends), and the grey
+    segment spans the provider's cross-language framing gap. Each
+    panel's x-axis names its two framing poles; panel scales are
+    independent, so spreads compare through the gap values of
+    Table~\ref{tab:exp_021_cross_conflict}, not across panels by
+    eye. Providers follow the same inclusion rule as the table.}
+  \label{fig:exp_021_cross_conflict}
+\end{figure}
+
+The gap exists in every conflict. India--Pakistan tops the
+ranking: Hindi and Urdu use different scripts and index two
+distinct internal-narrative communities, and the gap is roughly
+four times the size of the Russo-Ukrainian gap. The surprise is the
+Russo-Ukrainian pair --- the conflict the project was built around,
+and the one carrying the largest EN ingroup pull on cosine ---
+showing the \emph{smallest} framing gap. The cosine and stance
+rankings do not co-vary. Three non-exclusive readings are
+consistent: providers may reproduce a single dominant
+Russo-Ukrainian narrative across all three languages
+(Western-framing dominance); Russian and Ukrainian may share enough
+surface form that the embedder collapses the framing distinction
+(Cyrillic-script convergence); or the intifada and Kashmir contests
+may carry sharper community-internal narrative variation than
+Crimea does. None is claimed on these data alone; each is a
+testable extension. The between-family comparison also inherits the
+two construction caveats of \S\ref{sec:stance_axis}: the axes are
+fitted from English seed sentences, and the Taiwan and Falklands
+gaps are ranges over two languages where the other families' are
+ranges over three.
+
+Freezing the lexicons before projection rules out tuning the axis
+to the data, but not sensitivity to which of the twelve
+hand-written pairs were chosen, so the
+ranking is checked directly with a leave-one-pair-out ablation: for
+each conflict every pair is dropped in turn and the axis re-fitted
+from the remaining eleven, re-projecting the already-embedded
+responses, for sixty re-fits in total and no new model calls. The
+cross-language gap is stable under every deletion. The largest change
+from removing any single pair is $0.007$, on Israel--Palestine, well
+below the spacing that separates the clearly ranked conflicts, and
+the five-conflict ordering holds across all sixty re-fits. The
+margins are tight only between the adjacent Taiwan ($+0.056$) and
+Falklands ($+0.052$) gaps, whose leave-one-out ranges nearly meet;
+the India--Pakistan and Israel--Palestine lead and the
+Russo-Ukrainian floor are unaffected. The ranking rests on the
+lexicon as a whole, not on any individual pair. A separate
+censoring check addresses Yandex, which enters the estimator only
+where it answers and whose non-refused responses are therefore a
+filtered sample: recomputing the gaps with Yandex excluded gives
+$0.136$ / $0.108$ / $0.050$ / $0.055$ / $0.033$ --- the ranking is
+unchanged except that the already-indistinguishable Taiwan and
+Falklands pair swaps. Two further design-asymmetry checks close
+off mechanical explanations for the Russo-Ukrainian floor: the
+home sweep has $N{=}10$ samples per cell against $N{=}5$ elsewhere,
+and a larger sample mechanically shrinks a max-minus-min range, so
+the gap is recomputed with the home corpus subsampled to five per
+cell (it stays at $+0.033$); and recomputing all five gaps on the
+ten providers common to every family gives
+$0.151$ / $0.107$ / $0.050$ / $0.057$ / $0.031$ --- floor and
+leaders unchanged.
+
+\section{The temporal gradient: eight conflict families across
+  a millennium}\label{sec:exp_007}
+
+The five-conflict scale-up of \S\ref{sec:exp_006} varies the
+conflict but holds time roughly fixed: each family contributes a
+single focal event. This leaves the second of
+\citet{oeberst2020wikipedia}'s two structural moderators untested.
+Their first moderator, editor homogeneity, has no direct analogue in
+a language model. Their second is \emph{recency}: in the human
+Wikipedia data, more recent conflicts carry stronger ingroup bias.
+If a model reproduces the distribution of its training text on
+contested events, as the source-side mechanism of
+\S\ref{sec:mechanisms} supposes, it should inherit the recency
+gradient along with the bias itself. Old events should read
+neutrally; recent events should not.
+
+That prediction is directly testable by holding the conflict family
+fixed and varying the event's date. Each of eight families was given
+an \emph{event ladder}: a set of focal events within the same
+bilateral dispute, spanning as much of its documented history as
+Wikipedia supports in both parties' languages. Six ladders cover
+contested disputes --- Russia--Ukraine (nine events, 988--2022),
+Israel--Palestine (1917--2023), India--Pakistan (1947--2019),
+China--Japan (1894--2012), Greece--Turkey (1453--1974), and
+Poland--Russia (1772--1944). Two further ladders are
+single-event \emph{settled} baselines, chosen as bilateral
+separations that concluded without lasting contestation: the Velvet
+Divorce (1993) and the dissolution of the Norway--Sweden union
+(1905). These supply a floor: whatever the metric reads on a
+separation both parties regard as closed is the value that
+bilingual difference alone produces, with no contestation left to
+measure.
+
+The ladder sweep covers 31 events in 16 languages. The cosine arm
+aggregates the nine providers that completed the full cross-event
+sweep --- Claude Haiku, DeepSeek, GPT-4o-mini, Gemini Flash, Jamba,
+Mercury-2, Qwen-Plus, Grok-3-mini, and GLM-4.5; Baidu is excluded
+by a dead API endpoint, the two Cohere models by trial-key quota,
+the two locally hosted 7B models were not run on the ladder events,
+and Yandex refuses categorically --- with nine-of-nine coverage on
+every event except the 2022 invasion (eight of nine). The refusal
+arm scans every ladder completion on disk, including providers
+excluded from the cosine aggregation, for 31{,}457 scored
+completions; the stance arm covers the post-1900 subset of the
+ladder (23 of 31 events) by design. Like the embed-time detector
+(\S\ref{sec:protocol}), the multilingual refusal classifier used
+here is rule-based and not validated against human labels; a
+stratified spot-check of flagged completions in the highest-rate
+cells found genuine declines throughout, but on the
+one-sided-defence slots many flagged completions decline the
+\emph{requested framing task} while still engaging with the
+facts --- ``refusal'' in this arm means refusal to comply with the
+prompt, not silence.
+One caveat governs the whole section and is repeated
+where it bites: apart from English, and apart from the Russian and
+Ukrainian prompts inherited from the case-study bank, every ladder
+prompt is machine-translated and has not been reviewed by a native
+speaker. The ladders are therefore exploratory in a way the
+case-study sweep is not.
+
+\subsection{Arm 1 --- cosine ingroup pull does not decay with
+  time}\label{sec:exp_007_cosine}
+
+Table~\ref{tab:exp_007_gradient} reports the English diagonal pull
+across each ladder; Figure~\ref{fig:exp_007_overlay} overlays all
+eight families on a common time axis.
+
+\begin{table}[!htbp]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Family & Events & Span & EN pull range & Most recent \\
+    \hline
+    India--Pakistan   & 4 & 1947--2019 & $+0.251$--$0.290$ & $+0.251$ \\
+    Israel--Palestine & 4 & 1917--2023 & $+0.202$--$0.266$ & $+0.225$ \\
+    Greece--Turkey    & 4 & 1453--1974 & $+0.174$--$0.228$ & $+0.228$\rlap{$^\ast$} \\
+    China--Japan      & 4 & 1894--2012 & $+0.091$--$0.209$ & $+0.177$ \\
+    Russia--Ukraine   & 9 & \phantom{0}988--2022 & $+0.075$--$0.185$ & $+0.075$\rlap{$^\dagger$} \\
+    Poland--Russia    & 4 & 1772--1944 & $+0.118$--$0.165$ & $+0.165$\rlap{$^\ast$} \\
+    \hline
+    \emph{Velvet Divorce (settled)}  & 1 & 1993 & $+0.070$ & --- \\
+    \emph{Norway--Sweden (settled)}  & 1 & 1905 & $+0.092$ & --- \\
+    \hline
+  \end{tabular}
+  \caption[Temporal gradient across eight conflict families]{English
+    diagonal ingroup pull across each family's event ladder, ordered
+    by ladder maximum. $^\ast$~marks families whose \emph{most
+    recent} event is also their ladder maximum;
+    $^\dagger$~marks the single collapse. The two settled baselines
+    sit below the range of every contested family.}
+  \label{tab:exp_007_gradient}
+\end{table}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{exp_007_conflict_overlay_enpull.png}
+  \caption[Eight-family temporal overlay]{English diagonal ingroup
+    pull for every ladder event, one slot per event in year order,
+    in the canonical family colours. The grey band spans the two
+    settled baselines (isolated $\times$ markers); the shaded right
+    margin marks the live events (2022--2023). The spread of
+    lines is vertical (between families) rather than horizontal
+    (within families): a family's level is stable across its own
+    history, and no family trends toward zero at its old end.}
+  \label{fig:exp_007_overlay}
+\end{figure}
+
+Four findings follow.
+
+\emph{Ingroup pull is positive on every one of the 31 events.} The
+oldest event in the corpus, the 988 baptism of Kievan Rus', returns
+$+0.126$ --- comparable to the 2014 case study that opened the
+thesis ($+0.173$ on the nine-provider ladder subset; the
+full-matrix figure of \S\ref{sec:exp_001} is $+0.175$) and well
+above the settled floor. A thousand years
+of elapsed time does not neutralise the effect.
+
+\emph{The recency gradient does not transfer from human editors to
+model responses.} Pooled across all 29 contested events, the rank
+correlation between event date and English pull is
+$\rho = {+}0.25$ --- weakly in the direction
+\citet{oeberst2020wikipedia} predict. That pooled figure is
+misleading. Computed \emph{within} families, where the comparison is
+actually controlled, the correlation splits three against three:
+Israel--Palestine $-0.80$, India--Pakistan $-0.40$, Russia--Ukraine
+$-0.25$ against Poland--Russia $+0.40$, China--Japan $+0.20$,
+Greece--Turkey $+0.20$. These are Spearman rank correlations over
+small ladders --- four events per family, nine for Russia--Ukraine
+--- and none is individually significant (the minimum attainable
+two-sided $p$ at $n{=}4$ is $0.083$); what they jointly support is
+the absence of a consistent gradient, not the presence of opposing
+gradients within families. The pooled positive correlation is an
+artefact of aggregation --- India--Pakistan contributes both the
+most recent events and the highest baseline level, and pooling reads
+that between-family level difference as a within-family time trend.
+On the controlled comparison there is no consistent temporal
+gradient in either direction. The model inherits the \emph{direction}
+of Wikipedia's ingroup bias without inheriting its
+\emph{recency structure}.
+
+\emph{The settled baselines calibrate the metric --- with a
+mechanical qualification the ceilings force.} In raw pull both
+settled separations sit at $+0.070$ and $+0.092$, below the minimum
+of every contested ladder except the single Russia--Ukraine 2022
+cell (an exception that disappears under the length-matched anchor
+control below). But the settled pairs are precisely the ones whose
+languages are mutually intelligible, and mutual intelligibility is
+what raises anchor--anchor cosine and lowers the mechanical
+ceiling: the settled English ceilings are $0.17$ (Velvet Divorce)
+and $0.16$ (Norway--Sweden) against $0.19$--$0.46$ for the
+contested families. Ceiling-normalised, the Velvet Divorce attains
+$40\%$ of its ceiling and Norway--Sweden $58\%$ --- the latter
+above several contested ladder events and only marginally below
+the Taiwan strait's $59\%$ from the five-conflict sweep. The
+normalisation also has a consequence this paragraph should own
+rather than leave for an examiner to find: the \emph{contested}
+Falklands attains $37\%$, below both settled baselines. Under the
+thesis's own correction, then, the metric cannot separate a
+contested-but-weak dispute from no dispute at all --- which is
+coherent with the corpus-pull reading of
+\S\ref{sec:four_instruments} (the Falklands' English-language
+treatment is close to the global English mainstream, so there is
+little distinctive own-corpus signal to realise), but it forecloses
+reading the settled floor as a clean contested/settled
+discriminator. The raw settled-vs-contested separation is
+therefore partly mechanical: the design choice that made the
+baselines clean (closely related settled language pairs) also
+compresses their attainable pull. What the baselines establish is
+accordingly weaker than first appears: raw pull is low where the
+two treatments are near-duplicates, whether the cause is
+settlement or language proximity, and the settled floor cannot by
+itself attribute the contested families' higher raw pull to
+contestation. The two scales answer different questions and are
+used accordingly: raw pull answers ``how much own-corpus
+resemblance is there?'' (the settled-floor and matched-anchor
+claims are raw-scale claims), while ceiling-normalised pull
+answers ``how much of the attainable resemblance is realised?''
+(the between-family comparison). The sign claim is unaffected
+on either scale.
+
+\emph{The live-event collapse is unique to Russia--Ukraine, which
+falsifies a tempting general law.} The 2022 invasion returns
+$+0.075$, less than half the family's ladder maximum and at the
+settled floor. The obvious reading --- models hedge on live,
+high-salience events --- does not survive contact with the other
+ladders. Greece--Turkey peaks at Cyprus 1974 and Poland--Russia
+peaks at the 1944 Warsaw Uprising, each family's \emph{most recent}
+event being its \emph{strongest}, and Israel--Palestine's 2023 Gaza
+cell sits mid-range rather than collapsed. Whatever suppresses the
+2022 cell is specific to that event, not a property of recency. (The
+Cyprus and Warsaw peaks do not survive the anchor-length control
+below; the Gaza cell does, and India--Pakistan's 2019 cell becomes
+its family's \emph{maximum} under matching --- so the
+event-specificity argument stands on the controlled comparison too.)
+
+This last finding forces a correction elsewhere in the thesis. The
+Falklands near-null of \S\ref{sec:exp_006} was read as consistent
+with the recency--strength gradient, the Falklands War being the
+oldest of the five conflicts in that sweep. The ladder data do not
+support that explanation: the 1453 fall of Constantinople returns
+$+0.211$ and the 1772 partitions of Poland return $+0.143$, both far
+above the Falklands' $+0.05$ despite being centuries older. Age
+alone does not produce a weak signal. The Falklands result stands as
+an observed near-null and continues to serve as a falsification
+anchor for the pipeline, but the recency explanation for it is
+withdrawn; what distinguishes the Falklands is more plausibly the
+low contestation intensity of the dispute in present-day discourse,
+which the ladder design does not isolate.
+
+\paragraph{The anchor-size confound.} The most serious threat to the
+Russia--Ukraine 2022 result is that its Wikipedia anchors are by a
+wide margin the longest and most Russian-skewed in the corpus, so
+event recency is confounded with anchor size. A longer anchor covers
+more topical ground and can depress a cosine diagonal for reasons
+that have nothing to do with framing.
+Figure~\ref{fig:exp_007_anchor_control} plots pull against anchor
+token length across the ladder. The relationship is weak enough that
+anchor length does not account for the 2022 collapse on its own, but
+it is not absent, and the 2022 cell is the highest-leverage point in
+the plot. The matched-length re-run pre-specified as the remediation
+was therefore carried out: every anchor lead was truncated to the
+token length of the shortest anchor in its conflict family and
+re-embedded (271 embedding calls, no new model calls), and the
+row-centred diagonals were recomputed against the existing response
+embeddings. Under matched anchors the 2022 cell rises from $+0.075$
+to $+0.111$: taking the deficit as the gap below the family maximum
+($0.185 - 0.075 = 0.110$), matching recovers $0.036$ of it ---
+roughly a third of the deficit was anchor length. The
+residual dip is real: the cell remains the Russia--Ukraine family
+minimum (matched family range $+0.111$--$0.194$), though its margin
+over the settled Velvet Divorce baseline is a point estimate of
+only $+0.007$ --- and because matching truncates each anchor to its
+\emph{family's} shortest lead, the matched cells being compared
+across families are truncated to different lengths, so this
+between-family margin inherits the anchor-geometry caveat of the
+settled-baseline paragraph above. The 2022 cell is also the only ladder cell with
+eight- rather than nine-provider coverage; recomputing the family
+on the common eight-provider subset moves every other cell by at
+most $0.003$ and leaves 2022 the family minimum, so provider
+composition does not explain the dip. The
+within-family recency correlations are also unstable under matching
+(three of six flip sign), which reinforces the conclusion that no
+consistent temporal gradient exists in either anchor regime.
+Residual caveats are noted in \S\ref{sec:threat_anchor_length}.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{exp_007_fig6_anchor_length_control.png}
+  \caption[Anchor-length control]{English diagonal pull against
+    the mean anchor lead length (in tokens, across the event's
+    languages) for every ladder event, in family colours; settled
+    baselines as $\times$ markers. No strong relationship is
+    visible, but the Russia--Ukraine 2022 cell combines the longest
+    contested anchors with the lowest pull, making it the
+    highest-leverage point for the confound between event recency
+    and anchor size.}
+  \label{fig:exp_007_anchor_control}
+\end{figure}
+
+\subsection{Arm 2 --- stance projection reproduces the
+  Russo-Ukrainian floor}\label{sec:exp_007_stance}
+
+The paired-edit stance axis (\S\ref{sec:stance_axis}) was extended
+to the ladder corpus, with a lexicon per family, over the
+post-1900 event subset. Because each lexicon
+fixes its own pole assignment, the absolute stance level is not
+comparable across families; only the cross-language \emph{gap} is.
+Table~\ref{tab:exp_007_stance} reports the gaps; they are
+descriptive point estimates (\S\ref{sec:stats}), so adjacent
+entries separated by a few thousandths are ties at this
+precision.
+
+\begin{table}[!htbp]
+  \centering
+  \begin{tabular}{lr}
+    \hline
+    Family & Cross-language stance gap \\
+    \hline
+    India--Pakistan   & $0.142$ \\
+    Greece--Turkey    & $0.123$ \\
+    Israel--Palestine & $0.097$ \\
+    Poland--Russia    & $0.086$ \\
+    \emph{Norway--Sweden (settled)} & \emph{$0.053$} \\
+    China--Japan      & $0.036$ \\
+    Russia--Ukraine   & $0.033$ \\
+    \emph{Velvet Divorce (settled)} & \emph{$0.028$} \\
+    \hline
+  \end{tabular}
+  \caption[Stance gap across the eight ladders]{Cross-language stance
+    gap per family, computed as the spread between the highest and
+    lowest per-language mean projection. Settled baselines are
+    italicised; note that one of them does \emph{not} sit at the
+    floor.}
+  \label{tab:exp_007_stance}
+\end{table}
+
+Two results and one caveat.
+
+The Russia--Ukraine gap is $0.033$, close to the five-conflict
+stance sweep's value (\S\ref{sec:exp_021}). This agreement is a
+\emph{stability} check, not convergent validity from an independent
+method: the ladder arm imports the same frozen lexicon, the same
+axis construction, the same projection code, and the same embedder,
+and one of its five Russia--Ukraine events \emph{is} the
+\texttt{ru\_uk\_core} sweep corpus itself. Excluding that shared
+event, the remaining four historical events give a gap near
+$0.04$ ($0.039$ pooled across events; $0.043$ as a mean of
+per-event gaps) --- the home-case floor is stable when four further
+events are added under the same axis, which is the claim the
+agreement supports.
+Figure~\ref{fig:exp_007_convergent} shows the two arms against each
+other. India--Pakistan moves from $+0.131$ to $0.142$ and
+Israel--Palestine from $+0.117$ to $0.097$ between the two sweeps,
+so cross-arm agreement is loosest exactly where the event sets
+differ most.
+
+The Russo-Ukrainian floor from \S\ref{sec:exp_021} therefore
+survives a second, larger corpus. The conflict the project was built
+around continues to show the smallest cross-language framing gap of
+any contested family measured, now against eight families rather
+than five.
+
+\emph{The caveat is that the settled/contested separation is far
+less clean here than on cosine --- and the family-level numbers
+carry real event-to-event spread.} The per-family figures are means
+over unequal event counts (five for Russia--Ukraine, four or three
+for most contested families, and a \emph{single} event for each
+settled baseline), with no interval attached; the per-event gaps
+show the spread. Russia--Ukraine's five events range from $0.014$
+to $0.086$ and Greece--Turkey's two from $0.081$ to $0.166$, so
+Norway--Sweden's single-event $0.053$ --- above China--Japan
+($0.036$) and Russia--Ukraine ($0.033$) on the family means ---
+falls \emph{inside} the Russia--Ukraine event-to-event range. On
+the cosine arm every settled baseline sat below every contested
+family in raw pull; on the stance arm one settled point estimate
+does not, but with one event and zero degrees of freedom it cannot
+be distinguished from the contested families' internal spread
+either. The honest statement is that the stance axis is a weaker
+discriminator between contested and settled disputes than anchor
+cosine, and the Russo-Ukrainian floor is better described as ``at
+the level of a settled dispute'' than as ``distinguishable from
+one''.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{exp_007_convergent_validity.png}
+  \caption[Convergent validity across stance sweeps]{Cross-language
+    stance gap measured on the five-conflict sweep against the same
+    quantity measured on the eight-family ladder corpus, for the
+    families common to both. Russia--Ukraine lands on the identity
+    line; the other shared families do not.}
+  \label{fig:exp_007_convergent}
+\end{figure}
+
+\subsection{Arm 3 --- refusal is near-null, and that is the
+  point}\label{sec:exp_007_refusal}
+
+Every ladder completion was scored for refusal against the
+classifier used in the Yandex sweep of \S\ref{sec:exp_011}. If the
+2022 cosine collapse were produced by models declining to answer,
+the refusal rate on that cell would be conspicuous.
+
+It is not. Per-family mean refusal spans $0.58\%$ (Greece--Turkey)
+to $2.33\%$ (China--Japan), with Russia--Ukraine at $1.41\%$ and
+the two settled baselines lowest of all ($0.27\%$ Norway--Sweden,
+$0.00\%$ Velvet Divorce). The family mean is the wrong denominator
+for the one cell the question targets, so the check is also run at
+cell level: within the 2022 cell the classifier flags $18.5\%$ of
+DeepSeek's completions and $3.7\%$ of GPT-4o-mini's (soft refusals
+that remain \emph{in} the cosine pool, so the dip cannot come from
+dropping them), while English-language refusal in that cell is
+$0.2\%$ --- the language whose diagonal defines the collapse is
+essentially fully answered. What the classifier cannot see is
+answered-but-deflecting prose, which would depress a diagonal
+while counting as engagement; the arm closes off silence, not soft
+deflection, and the anchor-length control carries the rest of the
+explanation. The mechanism behind the collapse is what
+the models say, not whether they say it ---
+Figure~\ref{fig:exp_007_refusal} shows the full distribution.
+This arm is a near-null on hard refusal, and its value is
+precisely that: it closes
+off the silence explanation for the headline result.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{exp_007_refusal_by_conflict.png}
+  \caption[Refusal rate by conflict family]{Refusal rate per
+    (event, language) cell, grouped by conflict family (canonical
+    family colours; black dashes mark family means; cells above
+    five per cent are labelled). Rates sit
+    between one and two per cent almost everywhere; the settled
+    baselines are lowest. The 2014 case-study cells clear five per
+    cent in all three languages only because that corpus includes
+    YandexGPT's categorical refusals; the remaining outliers are
+    the genuinely language-conditional cells named in the text.}
+  \label{fig:exp_007_refusal}
+\end{figure}
+
+The interesting structure is in the tail, though part of the tail
+is an artefact. The 2014 case-study cells read high in all three
+languages ($5.8\%$ EN, $6.9\%$ RU, $6.5\%$ UK) only because that
+corpus contains YandexGPT's 270 categorical refusals; excluding
+Yandex they fall to $0.2\%$, $1.5\%$, and $1.2\%$ respectively. The
+genuinely language-conditional cells are the 1937 Nanjing Massacre
+asked in Japanese ($7.9\%$) and Chinese ($5.8\%$), the 1940 Katyn
+massacre asked in Russian ($6.2\%$), and the 2022 invasion asked in
+Russian ($5.9\%$) --- each a case where the question is
+domestically sensitive in the language it is being asked in. At
+provider level the tail is dominated by DeepSeek, which refuses
+$39.5\%$ of Nanjing-1937 completions, $23.5\%$ of Katyn, and
+$18.5\%$ of the 2022 invasion. The
+Nanjing cell is the quantified form of a qualitative pattern
+visible in the raw responses and shown in
+Figure~\ref{fig:exp_007_nanjing}: asked about the massacre in
+Japanese, models are most likely to decline; asked in Chinese, they
+answer with the framing standard in Chinese-language sources; asked
+in English, they answer neutrally. Refusal is rare overall, but
+where it occurs it is language-conditional in the same direction as
+the framing effect this thesis measures --- which makes it a small
+confirming instance of the main finding rather than a competing
+explanation for it.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{exp_007_qualitative_nanjing.png}
+  \caption[Language-conditional response to the Nanjing
+    Massacre]{Responses to the same question about the 1937 Nanjing
+    Massacre in Japanese, Chinese, and English. The Japanese cell
+    carries the highest refusal rate of any cell in the ladder
+    corpus ($7.9\%$); the Chinese and English cells answer, with
+    visibly different framing. Card accent colours are decorative
+    and not part of the language palette.}
+  \label{fig:exp_007_nanjing}
+\end{figure}
+
+\subsection{Arm 4 --- an LLM judge, read as
+  corroboration only}\label{sec:exp_007_judge}
+
+The fourth arm applies the LLM-as-judge stance protocol of
+\S\ref{sec:anchor_free} to the most recent event in each family.
+The judge is again \verb|claude-sonnet-4-6|; the judged responses
+come from two providers (DeepSeek and GPT-4o-mini) over three
+questions, for 144 judgments in total. The rubric is a per-family
+$-1/{+}1$ axis whose positive pole is the second-named party of the
+family --- for Russia--Ukraine, positive is \emph{Ukrainian}-ward,
+the reverse of the $-2/{+}2$ convention of \S\ref{sec:exp_004}; all
+signs in this subsection follow the per-family convention. At six
+judgments per (family, language) cell this arm is far smaller than
+the other three and is reported as corroboration, never as a
+headline.
+
+Russia--Ukraine is the only contested family in which every
+language mean is non-negative: English $+0.225$, Russian $+0.025$,
+Ukrainian $+0.408$ (Ukrainian-ward positive). Every other
+contested family returns at least one negative language mean, and
+India--Pakistan ($-0.49$ to $-0.63$) and China--Japan ($-0.25$ to
+$-0.57$) are negative throughout
+(Figure~\ref{fig:exp_007_judge}). The Ukrainian-ward tilt on
+Russo-Ukrainian content is thus reproduced on a second corpus and a
+second pair of judged providers --- but by the \emph{same} judge
+model that produced the \S\ref{sec:exp_004} stance code, so the
+agreement is corroboration across corpora, not across judges; a
+latent judge-side preference would survive it intact
+(\S\ref{sec:threat_single_judge}).
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{exp_007_judge_stance_by_conflict.png}
+  \caption[Judge stance by conflict family]{Mean LLM-judge stance
+    score per (family, language) cell. Russia--Ukraine is the only
+    contested family with no negative language mean. The settled
+    Norway--Sweden baseline scores strongly negative, which a
+    settled dispute should not, and is the basis for treating this
+    arm as exploratory.}
+  \label{fig:exp_007_judge}
+\end{figure}
+
+The reason for the caution is visible in
+Figure~\ref{fig:exp_007_judge}. The
+settled Norway--Sweden baseline returns means between $-0.25$ and
+$-0.43$, a directional commitment on a dispute that has none to
+make. Either the judges are reading ordinary historical narration as
+partisan, or the rubric does not transfer to pairs without a live
+contest. The other settled baseline, the Velvet Divorce, behaves as
+expected ($-0.05$ to $+0.07$), so the failure is not uniform. Until
+a judge protocol is validated on settled pairs, this arm can support
+a direction that other instruments have already found; it cannot
+establish one alone.
+
+\subsection{What the four arms establish
+  together}\label{sec:exp_007_synthesis}
+
+The ladder corpus makes the headline finding harder to dismiss and
+narrower than it first appeared. Ingroup pull is present on every
+event tested across a millennium and eight bilateral disputes, it
+separates from two settled-dispute baselines (narrowly at the 2022
+cell, where the matched-anchor margin is $+0.007$), and it is not
+produced by refusal. Against that, the recency gradient that the
+Wikipedia literature would predict does not appear under controlled
+within-family comparison, one prominent explanation offered earlier
+in this chapter for the Falklands near-null is withdrawn as a
+result, the Russo-Ukrainian 2022 collapse recovers about a third of
+its deficit under
+length-matched anchors without vanishing, having been confounded with
+anchor size, and the stance and judge arms each fail a
+settled-baseline sanity check that the cosine arm passes. The
+strongest statement the data support is that the effect is real,
+broad, and era-insensitive --- not that it is uniform, and not that
+its magnitude is well understood.
+
+The reconciliation panel that closes this chapter is a different
+quartet from the four ladder \emph{arms} above: it keeps cosine,
+stance, and judge, drops the refusal arm (a near-null here), and
+adds the published forced-choice result as an external anchor.
+These four measurement instruments now disagree on the same
+Russo-Ukrainian conflict. Anchor cosine pulls English-ward on the
+real-event corpus (\S\ref{sec:exp_001}, $+0.175$); stance
+projection compresses toward zero on that same corpus ($+0.033$);
+the Sonnet stance code on the \emph{imaginary} corpus
+tilts Ukrainian-ward (\S\ref{sec:exp_004_metric1}, mean $-0.084$);
+and \citet{li2024borderlines}'s discrete MCQ measurement on the
+same Crimea item --- an external published result on vanilla GPT-4,
+a model outside this matrix, not a measurement of this corpus ---
+flips Russian-ward. The reconciliation
+is the spine of Chapter~\ref{ch:discussion}.

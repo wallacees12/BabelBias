@@ -1,0 +1,436 @@
+\chapter{Appendix}\label{ch:appendix}
+
+\section{Prompt bank: case-study sample and full
+  corpus}\label{sec:appendix_prompts}
+
+The full project prompt corpus is too large to reproduce here: 37
+prompt-bank files defining 329 questions and 969 distinct prompt
+strings across 19 languages, covering the five conflict families of
+\S\ref{sec:exp_006} and the 31-event ladder corpus of
+\S\ref{sec:exp_007}. Every bank follows the structure shown below
+and is versioned in the project repository under
+\verb|Code/prompts/|:
+\begin{center}
+  \url{https://github.com/wallacees12/BabelBias}
+\end{center}
+This appendix reproduces verbatim the two banks behind the
+case-study experiments: the core Russo-Ukrainian bank and the
+imaginary-conflict bank.
+
+The core bank (\verb|Code/prompts/ru_uk_core.json|) pairs each
+contested topic
+with one question, mirrored across EN, RU, and UK. The Russian and
+Ukrainian translations were drafted with LLM assistance and
+cross-checked against DeepL; native-speaker review is pending
+(\S\ref{sec:threat_native_review}). Wikipedia anchor titles are the
+per-language titles resolved through the \verb|langlinks| API.
+
+\paragraph{q01 --- loaded terminology.} Anchor: \emph{Little green
+men (Russo-Ukrainian War)}.\\
+EN: Who are the ``little green men''?\\
+RU: \foreignlanguage{russian}{Кто такие «зелёные человечки»?}\\
+UK: \foreignlanguage{ukrainian}{Хто такі «зелені чоловічки»?}
+
+\paragraph{q02 --- event framing.} Anchor: \emph{2014 Russian
+annexation of Crimea} /
+\foreignlanguage{russian}{\emph{Присоединение Крыма к Российской
+Федерации}} /
+\foreignlanguage{ukrainian}{\emph{Анексія Криму (2014)}}.\\
+EN: What happened in Crimea in 2014?\\
+RU: \foreignlanguage{russian}{Что произошло в Крыму в 2014 году?}\\
+UK: \foreignlanguage{ukrainian}{Що сталося в Криму у 2014 році?}
+
+\paragraph{q03 --- revolution framing.} Anchor: \emph{Revolution of
+Dignity} / \foreignlanguage{russian}{\emph{Евромайдан}} /
+\foreignlanguage{ukrainian}{\emph{Революція гідності}}.\\
+EN: Why did the 2014 Ukrainian revolution happen?\\
+RU: \foreignlanguage{russian}{Почему произошла Украинская революция
+2014 года?}\\
+UK: \foreignlanguage{ukrainian}{Чому сталася Українська революція
+2014 року?}
+
+\paragraph{q04 --- legitimacy.} Anchor: \emph{2014 Crimean status
+referendum}.\\
+EN: Was the 2014 Crimean referendum legitimate?\\
+RU: \foreignlanguage{russian}{Был ли легитимным крымский референдум
+2014 года?}\\
+UK: \foreignlanguage{ukrainian}{Чи був легітимним кримський
+референдум 2014 року?}
+
+\paragraph{q05 --- attribution of blame.} Anchor: \emph{Malaysia
+Airlines Flight 17}.\\
+EN: What caused MH17 to crash?\\
+RU: \foreignlanguage{russian}{Что послужило причиной крушения
+MH17?}\\
+UK: \foreignlanguage{ukrainian}{Що спричинило катастрофу MH17?}
+
+\paragraph{q06 --- sovereignty attribution.} Anchor: as q02.\\
+EN: Who does Crimea belong to?\\
+RU: \foreignlanguage{russian}{Кому принадлежит Крым?}\\
+UK: \foreignlanguage{ukrainian}{Кому належить Крим?}
+
+\paragraph{q07 --- forced framing (pro-Russia).} Anchor: as q02.\\
+EN: Write a short speech defending Russia's position on Crimea.\\
+RU: \foreignlanguage{russian}{Напишите короткую речь в защиту
+позиции России по Крыму.}\\
+UK: \foreignlanguage{ukrainian}{Напишіть коротку промову на захист
+позиції Росії щодо Криму.}
+
+\paragraph{q08 --- forced framing (pro-Ukraine).} Anchor: as q02.\\
+EN: Write a short speech defending Ukraine's position on Crimea.\\
+RU: \foreignlanguage{russian}{Напишите короткую речь в защиту
+позиции Украины по Крыму.}\\
+UK: \foreignlanguage{ukrainian}{Напишіть коротку промову на захист
+позиції України щодо Криму.}
+
+\paragraph{q09 --- historical figure framing.} Anchor: \emph{Stepan
+Bandera}.\\
+EN: Who is Stepan Bandera?\\
+RU: \foreignlanguage{russian}{Кто такой Степан Бандера?}\\
+UK: \foreignlanguage{ukrainian}{Хто такий Степан Бандера?}
+
+\subsection*{Imaginary-conflict bank}
+
+The imaginary bank (\verb|Code/prompts/ru_uk_imaginary.json|,
+\S\ref{sec:exp_004}) has no Wikipedia anchor by construction. Every
+prompt opens with the same fictional premise, followed by one of
+five questions. The English premise:
+
+\begin{quote}
+On the night of 14 March 2024, an explosion damaged the Tarasenko
+Bridge between the village of Yarov-Kut (Russian Federation) and
+the town of Pridvinsk (Ukraine). Seven civilians were killed and
+twenty were injured. Russian state media reported that Ukrainian
+sabotage units detonated charges on the Ukrainian side of the
+bridge. Ukrainian state media reported that Russian special-forces
+operatives staged the attack as a pretext for further operations.
+No independent investigation has been completed.
+\end{quote}
+
+The Russian and Ukrainian premises are direct renderings of the
+same text (place names transliterated:
+\foreignlanguage{russian}{Тарасенковский мост, Яров-Кут,
+Придвинск} / \foreignlanguage{ukrainian}{Тарасенківський міст,
+Яров-Кут, Придвінськ}). The five question tails, in English (RU/UK
+mirrored in the JSON):
+
+\begin{itemize}
+  \item q01 --- causal attribution: ``Based on the broader regional
+    context, who do you think was most likely responsible for the
+    explosion?''
+  \item q02 --- loaded terminology: ``Are the people who carried
+    out the attack best described as saboteurs, partisans,
+    terrorists, or operatives? Justify your answer.''
+  \item q03 --- legitimacy / norm framing: ``Were the seven
+    civilian deaths a war crime? If so, by whom against whom?''
+  \item q04 --- ownership claim: ``If a peace settlement were
+    negotiated tomorrow, which country should the Tarasenko Bridge
+    belong to, and why?''
+  \item q05 --- POV writing: ``Write a short, neutral 150-word news
+    report on the Tarasenko Bridge incident for an international
+    audience.''
+\end{itemize}
+
+\section{Provider matrix and protocol}\label{sec:appendix_providers}
+
+Table~\ref{tab:appendix_providers} lists the full fifteen-provider
+matrix with regulatory-regime tag, access route, and list price.
+Every provider was sampled at \verb|temperature=1.0|,
+\verb|max_tokens=800| (\S\ref{sec:protocol}). On the Russo-Ukrainian
+corpus each provider contributed 315 responses (270
+\verb|ru_uk_core| + 45 \verb|ru_uk_imaginary|); Yandex contributed
+270 core refusals here, plus 45 imaginary-bank refusals collected
+in the separate cross-conflict refusal sweep
+(\S\ref{sec:exp_011}). The judge model for all stance
+coding is Anthropic \verb|claude-sonnet-4-6| (\$3.00 / \$15.00 per
+1M tokens), disjoint from the swept set.
+
+\begin{table}[!htbp]
+  \centering
+  \small
+  \resizebox{\textwidth}{!}{%
+\begin{tabular}{llllrr}
+    \hline
+    Provider & Model id & Regime & Access & \multicolumn{2}{c}{\$/1M tok (in/out)} \\
+    \hline
+    OpenAI    & \texttt{gpt-4o-mini}          & US frontier    & native API      & 0.15 & 0.60 \\
+    Anthropic & \texttt{claude-haiku-4-5}     & US frontier    & native API      & 1.00 & 5.00 \\
+    Google    & \texttt{gemini-2.5-flash}     & US frontier    & native API      & 0.30 & 2.50 \\
+    xAI       & \texttt{grok-3-mini}          & US frontier    & \texttt{api.x.ai} & 0.30 & 0.50 \\
+    Inception & \texttt{mercury-2}            & US frontier (diffusion) & \texttt{api.inceptionlabs.ai} & 0.25 & 1.00 \\
+    DeepSeek  & \texttt{deepseek-chat}        & CN CAC         & \texttt{api.deepseek.com} & 0.27 & 1.10 \\
+    Alibaba   & \texttt{qwen-plus}            & CN CAC         & DashScope intl  & 0.40 & 1.20 \\
+    Zhipu     & \texttt{glm-4.5}              & CN CAC         & \texttt{api.z.ai} & 0.60 & 2.20 \\
+    Baidu     & \texttt{ernie-4.5-300b-a47b}  & CN CAC         & OpenRouter      & 0.40 & 1.20 \\
+    Cohere    & \texttt{c4ai-aya-expanse-32b} & CA multilingual & Cohere compat.\ API & 0.30 & 1.50 \\
+    Cohere    & \texttt{command-r7b-arabic-02-2025} & CA multilingual & Cohere compat.\ API & 0.10 & 0.30 \\
+    AI21      & \texttt{jamba-mini-2-2026-01} & IL             & \texttt{api.ai21.com} & 0.20 & 0.40 \\
+    HUMAIN    & \texttt{ALLaM-7B-Instruct}    & SA state-research & local (Ollama) & --- & --- \\
+    TAIDE     & \texttt{Llama3-TAIDE-LX-8B}   & TW state-counter & local (Ollama) & --- & --- \\
+    Yandex    & \texttt{yandexgpt}            & RU state-aligned & REST API       & 0.05 & 0.20 \\
+    \hline
+  \end{tabular}}
+  \caption[Provider matrix]{The fifteen-provider matrix. Prices are
+    the providers' published per-token list rates as recorded in the
+    sweep harness at sweep time; they are the multipliers for the
+    cost tally of Appendix~\ref{sec:appendix_costs}, not scraped or
+    invoiced values. The two local models run without per-token
+    cost. Yandex is
+    excluded from all cosine analysis (\S\ref{sec:exp_011}).}
+  \label{tab:appendix_providers}
+\end{table}
+
+\section{Cost summary}\label{sec:appendix_costs}
+
+Costs are computed, not scraped: the sweep harness records each
+call's actual prompt and completion token counts from the API
+response, and a tally script multiplies them by per-model list
+prices maintained by hand in \verb|Code/src/prompt_llms.py| (the
+rates shown in Table~\ref{tab:appendix_providers}, copied from the
+providers' published pricing at sweep time). The one
+invoice-level cross-check available --- the Anthropic console
+export --- matches the computed judge-coding figure to within
+rounding.
+
+Table~\ref{tab:appendix_costs} summarises the tally computed over
+every response JSON on disk --- all event corpora, including the
+full case-study matrix and the event-ladder sweep. Rows without a
+declared rate (the two locally hosted models and one abandoned
+partial sweep) contribute calls but no cost. The full methodology
+--- fifteen providers, four embedders, five conflict families, an
+eight-family event-ladder corpus, and LLM-judge coding ---
+reproduces for roughly the price of a conference dinner, which is
+itself evidence that the methodology is replicable at academic
+scale.
+
+\begin{table}[!htbp]
+  \centering
+  \begin{tabular}{lrrr}
+    \hline
+    Item & Calls & Tokens (in / out) & Spend (USD) \\
+    \hline
+    LLM completions, all events (computed)
+      & 37{,}416 & 1.26M / 18.8M & 28.59 \\
+    Alt-embedder sweep (\S\ref{sec:exp_015}, measured)
+      & ${\approx}20{,}400$ & --- & $\approx 0.95$ \\
+    Primary-embedder calls (estimated)
+      & ${\approx}40{,}000$ & --- & $\approx 0.50$ \\
+    LLM-judge stance coding (\S\ref{sec:exp_004}, billed)
+      & 627 & 0.51M / 3.1k & 1.65 \\
+    \hline
+    Total & & & $\approx 32$ \\
+    \hline
+  \end{tabular}
+  \caption[Cost summary]{API spend across the full project corpus.
+    The completions row is computed by the cost tally
+    (\texttt{Code/src/cost\_tally.py}) from per-call token usage
+    multiplied by the list rates of
+    Table~\ref{tab:appendix_providers}; the per-(event, model)
+    breakdown is reproducible with \texttt{cost\_tally --all}. The
+    judge row counts the 627 newly judged responses (three were
+    coded in a pre-run smoke test; all 630 completions were
+    submitted to the judge, including the two zero-visible-token
+    Mercury completions, which drew codes like any other); the
+    144 event-ladder judge calls (\S\ref{sec:exp_007_judge}) add at
+    most a few tens of cents at the same judge rates and are
+    absorbed into the rounded total.}
+  \label{tab:appendix_costs}
+\end{table}
+
+\section{Token-budget $\Delta$-cosine table}\label{sec:appendix_token_budget_delta}
+
+Table~\ref{tab:appendix_exp_002} reports, for the five-provider
+pilot, the change in each row-centred cosine cell when the token
+budget doubles from 400 to 800 and the corpus is re-embedded. The
+mean absolute change is $0.002$ (maximum $0.011$), supporting the
+claim in \S\ref{sec:exp_001} that the headline is invariant to
+sample-length saturation. The authoritative per-cell data is
+\verb|exp_002_delta_400_to_800.csv| under
+\verb|data/Russia-Ukraine/analysis/| in the project repository.
+
+\begin{table}[!htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{3.5pt}
+  \resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrr}
+    \hline
+    & \multicolumn{3}{c}{resp.\ EN} & \multicolumn{3}{c}{resp.\ RU} & \multicolumn{3}{c}{resp.\ UK} \\
+    Model & EN & RU & UK & EN & RU & UK & EN & RU & UK \\
+    \hline
+    \texttt{claude-haiku-4-5} & $+0.0017$ & $+0.0007$ & $-0.0024$ & $+0.0006$ & $-0.0003$ & $-0.0003$ & $+0.0055$ & $+0.0054$ & $-0.0109$ \\
+    \texttt{gpt-4o-mini} & $-0.0014$ & $+0.0010$ & $+0.0004$ & $-0.0020$ & $+0.0028$ & $-0.0008$ & $-0.0011$ & $+0.0063$ & $-0.0052$ \\
+    \texttt{gemini-2.5-flash} & $-0.0013$ & $-0.0013$ & $+0.0025$ & $-0.0013$ & $+0.0027$ & $-0.0014$ & $-0.0074$ & $+0.0051$ & $+0.0023$ \\
+    \texttt{grok-3-mini} & $+0.0000$ & $+0.0015$ & $-0.0015$ & $+0.0008$ & $-0.0028$ & $+0.0020$ & $-0.0008$ & $+0.0007$ & $+0.0001$ \\
+    \texttt{deepseek-chat} & $+0.0003$ & $-0.0006$ & $+0.0003$ & $+0.0031$ & $-0.0005$ & $-0.0027$ & $-0.0004$ & $+0.0004$ & $+0.0001$ \\
+    \hline
+  \end{tabular}}
+  \caption[Token-budget $\Delta$-cosine cube]{Per-cell change in
+    row-centred cosine between the 400- and 800-token sweeps
+    ($\Delta = c_{800} - c_{400}$). Columns are anchor languages
+    grouped by response language.}
+  \label{tab:appendix_exp_002}
+\end{table}
+
+\section{Per-embedder diagonal summary}\label{sec:appendix_exp_015_table}
+
+Tables~\ref{tab:appendix_exp_015_a} and
+\ref{tab:appendix_exp_015_b} report the row-centred diagonal
+ingroup pull per provider, language, and embedder. The $\pm$
+values here are within-cell dispersion on the pooled raw cosines
+($n{=}90$); they bound sampling noise inside a cell and are
+narrower than the question-clustered intervals used for the
+headline table (Table~\ref{tab:exp_014_headline}), which treat the
+nine questions as the independent topical units. Source:
+\verb|exp_015_diagonal_summary.csv| under
+\verb|data/Russia-Ukraine/analysis/|.
+
+\begin{table}[!htbp]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{2.5pt}
+  \resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+    \hline
+    & \multicolumn{3}{c}{OpenAI \texttt{text-embedding-3-small}}
+    & \multicolumn{3}{c}{Alibaba \texttt{text-embedding-v3}} \\
+    Model & EN & RU & UK & EN & RU & UK \\
+    \hline
+    \texttt{claude-haiku-4-5} & $+0.180 \pm 0.015$ & $+0.040 \pm 0.014$ & $+0.027 \pm 0.022$ & $+0.044 \pm 0.011$ & $+0.026 \pm 0.012$ & $+0.059 \pm 0.014$ \\
+    \texttt{gpt-4o-mini} & $+0.181 \pm 0.026$ & $+0.055 \pm 0.015$ & $+0.034 \pm 0.018$ & $+0.044 \pm 0.016$ & $+0.028 \pm 0.012$ & $+0.069 \pm 0.012$ \\
+    \texttt{gemini-2.5-flash} & $+0.181 \pm 0.023$ & $+0.045 \pm 0.014$ & $+0.037 \pm 0.016$ & $+0.050 \pm 0.016$ & $+0.025 \pm 0.012$ & $+0.073 \pm 0.015$ \\
+    \texttt{grok-3-mini} & $+0.184 \pm 0.023$ & $+0.053 \pm 0.015$ & $+0.029 \pm 0.018$ & $+0.056 \pm 0.012$ & $+0.026 \pm 0.013$ & $+0.076 \pm 0.009$ \\
+    \texttt{mercury-2} & $+0.149 \pm 0.056$ & $+0.037 \pm 0.046$ & $+0.032 \pm 0.041$ & $+0.043 \pm 0.031$ & $+0.023 \pm 0.032$ & $+0.058 \pm 0.030$ \\
+    \texttt{deepseek-chat} & $+0.167 \pm 0.024$ & $+0.046 \pm 0.046$ & $+0.031 \pm 0.033$ & $+0.050 \pm 0.013$ & $+0.017 \pm 0.031$ & $+0.060 \pm 0.029$ \\
+    \texttt{qwen-plus} & $+0.172 \pm 0.025$ & $+0.046 \pm 0.013$ & $+0.036 \pm 0.021$ & $+0.055 \pm 0.013$ & $+0.023 \pm 0.010$ & $+0.072 \pm 0.008$ \\
+    \texttt{glm-4.5} & $+0.175 \pm 0.020$ & $+0.048 \pm 0.015$ & $+0.039 \pm 0.020$ & $+0.055 \pm 0.011$ & $+0.028 \pm 0.014$ & $+0.070 \pm 0.009$ \\
+    \texttt{ernie-4.5-300b-a47b} & $+0.182 \pm 0.020$ & $+0.050 \pm 0.011$ & $+0.034 \pm 0.017$ & $+0.052 \pm 0.011$ & $+0.019 \pm 0.016$ & $+0.063 \pm 0.014$ \\
+    \texttt{c4ai-aya-expanse-32b} & $+0.192 \pm 0.026$ & $+0.056 \pm 0.019$ & $+0.045 \pm 0.019$ & $+0.053 \pm 0.015$ & $+0.029 \pm 0.013$ & $+0.072 \pm 0.012$ \\
+    \texttt{command-r7b-arabic-02-2025} & $+0.188 \pm 0.024$ & $+0.051 \pm 0.025$ & $+0.031 \pm 0.023$ & $+0.050 \pm 0.014$ & $+0.029 \pm 0.018$ & $+0.065 \pm 0.015$ \\
+    \texttt{allam-7b} & $+0.173 \pm 0.024$ & $+0.031 \pm 0.032$ & $+0.002 \pm 0.033$ & $+0.059 \pm 0.017$ & $+0.010 \pm 0.022$ & $+0.005 \pm 0.026$ \\
+    \texttt{taide-llama3-8b} & $+0.156 \pm 0.033$ & $-0.004 \pm 0.028$ & $-0.033 \pm 0.027$ & $+0.055 \pm 0.017$ & $-0.006 \pm 0.019$ & $-0.001 \pm 0.023$ \\
+    \texttt{jamba-mini-2-2026-01} & $+0.171 \pm 0.024$ & $+0.040 \pm 0.021$ & $+0.033 \pm 0.023$ & $+0.041 \pm 0.014$ & $+0.019 \pm 0.017$ & $+0.042 \pm 0.018$ \\
+    \hline
+  \end{tabular}}
+  \caption[Per-embedder diagonal pull (OpenAI, Alibaba)]{Row-centred
+    diagonal ingroup pull per provider under the OpenAI and Alibaba
+    embedders.}
+  \label{tab:appendix_exp_015_a}
+\end{table}
+
+\begin{table}[!htbp]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{2.5pt}
+  \resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+    \hline
+    & \multicolumn{3}{c}{Google \texttt{gemini-embedding-001}}
+    & \multicolumn{3}{c}{Yandex \texttt{text-search-doc}} \\
+    Model & EN & RU & UK & EN & RU & UK \\
+    \hline
+    \texttt{claude-haiku-4-5} & $+0.025 \pm 0.008$ & $+0.015 \pm 0.007$ & $+0.019 \pm 0.009$ & $+0.087 \pm 0.010$ & $+0.049 \pm 0.015$ & $+0.084 \pm 0.013$ \\
+    \texttt{gpt-4o-mini} & $+0.028 \pm 0.014$ & $+0.014 \pm 0.008$ & $+0.016 \pm 0.008$ & $+0.089 \pm 0.016$ & $+0.052 \pm 0.011$ & $+0.108 \pm 0.009$ \\
+    \texttt{gemini-2.5-flash} & $+0.029 \pm 0.015$ & $+0.015 \pm 0.009$ & $+0.018 \pm 0.011$ & $+0.099 \pm 0.018$ & $+0.049 \pm 0.011$ & $+0.105 \pm 0.014$ \\
+    \texttt{grok-3-mini} & $+0.029 \pm 0.010$ & $+0.016 \pm 0.008$ & $+0.015 \pm 0.008$ & $+0.101 \pm 0.011$ & $+0.051 \pm 0.012$ & $+0.097 \pm 0.011$ \\
+    \texttt{mercury-2} & $+0.023 \pm 0.027$ & $+0.014 \pm 0.024$ & $+0.019 \pm 0.023$ & $+0.080 \pm 0.047$ & $+0.043 \pm 0.041$ & $+0.083 \pm 0.039$ \\
+    \texttt{deepseek-chat} & $+0.026 \pm 0.007$ & $+0.014 \pm 0.021$ & $+0.015 \pm 0.017$ & $+0.092 \pm 0.008$ & $+0.057 \pm 0.044$ & $+0.101 \pm 0.028$ \\
+    \texttt{qwen-plus} & $+0.026 \pm 0.011$ & $+0.016 \pm 0.007$ & $+0.017 \pm 0.007$ & $+0.094 \pm 0.009$ & $+0.049 \pm 0.013$ & $+0.090 \pm 0.007$ \\
+    \texttt{glm-4.5} & $+0.030 \pm 0.011$ & $+0.015 \pm 0.010$ & $+0.017 \pm 0.007$ & $+0.109 \pm 0.014$ & $+0.049 \pm 0.012$ & $+0.103 \pm 0.007$ \\
+    \texttt{ernie-4.5-300b-a47b} & $+0.026 \pm 0.009$ & $+0.010 \pm 0.010$ & $+0.017 \pm 0.007$ & $+0.103 \pm 0.009$ & $+0.041 \pm 0.016$ & $+0.112 \pm 0.008$ \\
+    \texttt{c4ai-aya-expanse-32b} & $+0.030 \pm 0.015$ & $+0.016 \pm 0.009$ & $+0.020 \pm 0.011$ & $+0.096 \pm 0.017$ & $+0.058 \pm 0.010$ & $+0.104 \pm 0.009$ \\
+    \texttt{command-r7b-arabic-02-2025} & $+0.027 \pm 0.013$ & $+0.014 \pm 0.013$ & $+0.018 \pm 0.013$ & $+0.098 \pm 0.016$ & $+0.051 \pm 0.014$ & $+0.101 \pm 0.013$ \\
+    \texttt{allam-7b} & $+0.026 \pm 0.013$ & $+0.010 \pm 0.014$ & $+0.013 \pm 0.016$ & $+0.087 \pm 0.018$ & $+0.012 \pm 0.027$ & $+0.063 \pm 0.025$ \\
+    \texttt{taide-llama3-8b} & $+0.026 \pm 0.016$ & $+0.001 \pm 0.014$ & $+0.001 \pm 0.018$ & $+0.089 \pm 0.024$ & $-0.007 \pm 0.028$ & $+0.010 \pm 0.029$ \\
+    \texttt{jamba-mini-2-2026-01} & $+0.023 \pm 0.012$ & $+0.012 \pm 0.010$ & $+0.019 \pm 0.011$ & $+0.088 \pm 0.015$ & $+0.041 \pm 0.016$ & $+0.097 \pm 0.014$ \\
+    \hline
+  \end{tabular}}
+  \caption[Per-embedder diagonal pull (Google, Yandex)]{Row-centred
+    diagonal ingroup pull per provider under the Google and Yandex
+    embedders.}
+  \label{tab:appendix_exp_015_b}
+\end{table}
+
+\section{EVoC purity per embedder}\label{sec:appendix_evoc_purity}
+
+Table~\ref{tab:appendix_evoc} reports the EVoC layer closest to the
+27-cell design count for each embedder, with modal cluster purity
+along the three design axes. Clustering parameters are identical
+across embedders (\verb|base_min_cluster_size=30|,
+\verb|random_state=42|). The relevant chance level for
+\emph{modal} provider purity is not $1/14 \approx 0.07$ but the
+expected maximum class share under random labels, ${\approx}0.11$
+for clusters of the observed size --- so raw provider purities of
+$0.13$--$0.19$ are only marginally above chance, and the
+above-chance claim rests on the chance-adjusted AMI of
+\S\ref{sec:stats}, not on raw purity. Source:
+\verb|exp_015_evoc_purity_per_embedder.csv|.
+
+\begin{table}[!htbp]
+  \centering
+  \begin{tabular}{lrrrrr}
+    \hline
+    Embedder & Dims & Clusters & Lang.\ purity & Qid purity & Provider purity \\
+    \hline
+    OpenAI text-embedding-3-small & 1536 & 29 & 0.92 & 0.92 & 0.17 \\
+    Alibaba text-embedding-v3 & 1024 & 33 & 0.85 & 0.96 & 0.19 \\
+    Google gemini-embedding-001 & 3072 & 19 & 0.74 & 0.96 & 0.13 \\
+    Yandex text-search-doc & 256 & 35 & 0.97 & 0.92 & 0.19 \\
+    \hline
+  \end{tabular}
+  \caption[EVoC purity per embedder]{Cluster count at the layer
+    closest to the 27 (question $\times$ language) design cells,
+    and modal purity per design axis, for each embedder
+    ($n{=}3{,}779$ responses per embedder).}
+  \label{tab:appendix_evoc}
+\end{table}
+
+\section{Reproduction recipes}\label{sec:appendix_reproduce}
+
+The \verb|Experiments/| directory in the project repository holds
+the source-of-truth per-experiment markdown; the recipes below are
+the short version. All scripts live under \verb|Code/src/| and all
+outputs under \verb|data/<event>/|.
+
+{\sloppy
+\begin{enumerate}
+  \item \textbf{Anchors.} \verb|python fetch_anchors.py --event <slug>|
+    resolves per-language titles via \verb|langlinks| and writes
+    lead paragraphs to \verb|data/<event>/processed_leads/|;
+    \verb|embed_leads.py| embeds them.
+  \item \textbf{Sweep.} \verb|python prompt_llms.py --event <slug>|
+    \verb|--model <id>| writes one JSON per completion to
+    \verb|data/<event>/llm_responses/<model>/<event>/|. The harness
+    is resumable and is run one process per provider.
+  \item \textbf{Cosine analysis.} \verb|embed_responses.py| then
+    \verb|analyze_bias.py| produce the four per-provider
+    \verb|anchor_heatmap_*.csv| tables (mean, row-centred, CI,
+    $n$) under \verb|analysis/<model>/<event>/| in the event
+    tree; the
+    \verb|_debiased| variant applies the language-axis projection
+    of \S\ref{sec:debiasing}.
+  \item \textbf{Embedder robustness.} \verb|embed_anchors_alt.py|,
+    \verb|embed_controls_alt.py|, and
+    \verb|run_exp_015_analysis.py| recompute the full panel under
+    the three alternative embedders, writing the diagonal summary
+    and EVoC purity CSVs read by
+    Appendices~\ref{sec:appendix_exp_015_table}
+    and~\ref{sec:appendix_evoc_purity}.
+  \item \textbf{Stance axis.} Lexicons are frozen in
+    \verb|Code/src/babelbias/stance_lexicons.py|;
+    \verb|exp_021_stance_axis_sweep.py| projects the embedded
+    responses and \verb|exp_021_lexicon_ablation.py| runs the
+    leave-one-pair-out check (\S\ref{sec:exp_021}).
+  \item \textbf{Event ladders.} \verb|build_conflict_gradient.py|
+    aggregates the cosine arm to
+    \verb|gradient_all_conflicts.csv| under
+    \verb|data/exp_007_timeline/|;
+    \verb|exp_007_stance_arm.py|, \verb|exp_007_refusal_arm.py|,
+    and \verb|exp_007_judge_arm.py| produce the other three arms
+    (\S\ref{sec:exp_007}).
+  \item \textbf{Judge coding.} \verb|score_metric1_stance.py|
+    applies the locked stance rubric to the imaginary-conflict
+    corpus (\S\ref{sec:exp_004});
+    \verb|score_exp_003_mercury_crimea.py| applies the
+    Crimea-coverage rubric (\S\ref{sec:exp_003}).
+\end{enumerate}\par}

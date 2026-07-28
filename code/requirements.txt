@@ -1,0 +1,16 @@
+wikipedia-api==0.6.0
+python-dotenv
+pandas
+requests
+openai
+anthropic
+google-genai
+gigachat
+scikit-learn
+numpy
+openpyxl
+tiktoken
+matplotlib
+seaborn
+marimo
+plotly

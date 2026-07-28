@@ -1,0 +1,765 @@
+\chapter{Method}\label{ch:method}
+
+This chapter describes the experimental pipeline. The pipeline is
+event-aware: every component takes an \emph{event slug}
+(\verb|ru_uk_core|, \verb|israel_palestine|, etc.) that resolves to a
+prompt bank, a Wikipedia anchor set, a per-event raw-data tree, and a
+language list. The protocols below were originally designed for the
+2014 Russo-Ukrainian case study and then generalised, with no code
+changes, to four additional contested-event families
+(\S\ref{sec:cross_event_scaleup}). Figure~\ref{fig:pipeline_diagram}
+shows the end-to-end flow of artefacts, from raw Wikipedia text
+through to the cosine-pull and clustering metrics.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{pipeline_diagram.png}
+  \caption[Pipeline diagram]{End-to-end pipeline. The input streams
+    (anchor articles, universal-control corpus, prompt bank,
+    provider matrix) are embedded under the same primary model. The
+    response-language $\times$ anchor-language cosine matrix is the
+    central pivot, from which the analysis branches fan out: raw
+    row-centred ingroup pull (\S\ref{sec:cosine_metric}),
+    language-axis debiased pull (\S\ref{sec:debiasing}),
+    unsupervised EVoC cluster purity (\S\ref{sec:evoc}), and topic
+    lift versus an off-topic same-language baseline
+    (\S\ref{sec:topic_vs_lang}); the tokenizer-overlap check
+    (\S\ref{sec:tokenizer_control}) sits outside the metric stack.
+    Dashed lines mark the control corpus's secondary role fitting
+    the language axis and the off-topic baseline. (The provider box
+    is drawn for the fourteen cosine-eligible providers; the sweep
+    itself queries fifteen, \S\ref{sec:protocol}.)}
+  \label{fig:pipeline_diagram}
+\end{figure}
+
+\section{Case study: 2014 Russo-Ukrainian crisis}\label{sec:case_study}
+
+The thesis opens on the 2014 Crimean crisis because the contested
+framing is endogenous to the corpus rather than imposed by the
+researcher. The same set of events is named \emph{annexation} in
+English- and Ukrainian-language sources, while Russian-language
+sources use \emph{accession}
+(\foreignlanguage{russian}{присоединение}, the Russian Wikipedia
+title term) or, in state discourse, \emph{reunification}
+(\foreignlanguage{russian}{воссоединение}), with no neutral
+cross-language consensus term. This is the
+divergent-naming property that \citet{li2024borderlines} and
+\citet{urman2025silence} both rely on, and it is what licenses
+treating the per-language Wikipedia article as the ingroup framing
+anchor in \S\ref{sec:wiki_corpus}.
+
+The case study is also data-rich in all three
+target languages: every focal event has a substantive lead paragraph
+in EN, RU, and UK Wikipedia.
+Pre-empting the contrived-case critique, the case selection follows
+\citet{oeberst2020wikipedia}'s Study~2 set rather than being curated
+to maximise observed divergence: Crimean Crisis is one of their five
+large-effect-size conflicts and the only one that pairs a contested
+event with three Wikipedia editions large enough for stable embedding
+analysis.
+
+Figure~\ref{fig:conflict_atlas} situates the case study within the
+broader cross-event extension introduced in
+\S\ref{sec:cross_event_scaleup}: the 2014 Russo-Ukrainian crisis sits
+alongside Israel--Palestine, India--Pakistan, the Taiwan strait, and
+the Falklands War as the five contested-event families on which the
+methodology is evaluated.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{conflict_map.png}
+  \caption[Cross-conflict atlas]{The five contested-event families in
+    the BabelBias corpus. Each pair of contesting countries is shaded
+    in the family colour, with an arc between their capitals where
+    the capitals are far enough apart to draw one; the card
+    next to each conflict reports the number of LLM calls and
+    measured spend. The Falklands family is included deliberately as
+    a near-null falsification anchor following
+    \citet{oeberst2020wikipedia}'s Study~2 effect-size pattern.}
+  \label{fig:conflict_atlas}
+\end{figure}
+
+Six focal Wikipedia articles supply the anchor space:
+\emph{2014 Russian annexation of Crimea},
+\emph{2014 Crimean status referendum},
+\emph{Revolution of Dignity / Euromaidan},
+\emph{Malaysia Airlines Flight~17},
+\emph{Stepan Bandera}, and
+\emph{Little green men (Russo-Ukrainian War)}. The nine-question
+prompt bank in \S\ref{sec:question_bank} maps qids to these articles;
+multiple qids can share an anchor (q06--q08 all reference the
+annexation article).
+
+\section{Wikipedia anchor corpus}\label{sec:wiki_corpus}
+
+For each focal article and each target language, the pipeline fetches
+the live Wikipedia revision at fetch time via the MediaWiki
+\verb|langlinks| API --- the case-study anchors were frozen in
+April 2026 and the ladder anchors in June 2026, and the stored
+article texts in the repository (\verb|data/<event>/raw/|) are the
+exact texts embedded, so the analyses are reproducible from the
+frozen copies even as the live articles drift: starting from the English title, the per-language editions are
+resolved through the \verb|langlinks| field rather than from
+researcher-supplied translations, so the anchor corpus reflects the
+title each Wikipedia community has chosen for its own version of the
+article. This step is automated in
+\verb|Code/src/fetch_anchors.py|.
+
+The lead paragraph of each fetched article is extracted as the text
+preceding the first \verb|==| section header. Lead-only extraction
+is preferred over full-page content for three reasons. First,
+\citet{oeberst2020wikipedia}'s Study~2 establishes ingroup-bias
+signal on lead sections using the same four-dimensional
+content-coding rubric that Study~1 applied to full-article text,
+licensing the shorter unit for embedding-equivalent work. Second, lead
+paragraphs are stable across page revisions in a way that
+references-and-talk-section-heavy full pages are not. Third,
+embedding fidelity is higher on a coherent multi-paragraph lead than
+on a long article that must be chunk-and-mean averaged to fit the
+8192-token embedder limit. The chunk-and-mean path remains
+implemented for full-page inputs and is described in
+\S\ref{sec:embedding_pipeline}, but lead-only extraction is the
+protocol used throughout the results.
+
+The lead text is then embedded under the primary embedder
+(\S\ref{sec:embedding_pipeline}) and stored as
+\verb|<slug>_<lang>.json| under \verb|processed_leads/| in the
+per-event data tree, for later cosine comparison against LLM
+responses.
+
+\paragraph{Universal control corpus.} Language-axis debiasing
+(\S\ref{sec:debiasing}) requires a neutral-topic reference set in
+every target language to estimate the per-language centroid that
+encodes language-specific surface form. For the RU--UK case study,
+this set comprises 1{,}049 control article triples in EN/RU/UK
+harvested from random Russian Wikipedia mainspace pages and filtered
+through a conflict-keyword regex, following the IAT-neutral-set
+convention used by \citet{caliskan2017semantics}, in which the
+bias-test reference distribution is drawn from topic-neutral
+sources rather than from the contested corpus itself. Pivoting the
+harvest on Russian Wikipedia does skew the control topics toward
+subjects that edition covers; the skew is acceptable here because
+the controls are used only to estimate per-language surface-form
+centroids, not topic distributions, but it is a selection effect of
+the same kind as the Urdu-pivot effect discussed below.
+
+For the cross-event extension (\S\ref{sec:cross_event_scaleup}), the
+corpus was widened to a single \emph{universal control set} of 1{,}000
+neutral topics each available in EN, RU, UK, HE, AR, ZH, ES, PT, HI,
+and UR --- the union of all languages in the experimental
+roadmap. The harvest pivots on Urdu Wikipedia random-walks rather
+than English: an article that exists in a ${\sim}200{,}000$-article
+edition has passed an editorial translation-worthiness filter and is
+overwhelmingly likely to exist in larger editions, which raised the
+harvest yield sevenfold over an English pivot.
+
+\section{Question bank}\label{sec:question_bank}
+
+The \texttt{ru\_uk\_core} bank pairs each contested topic with one
+question per language, mirrored across EN, RU, and UK. The full bank
+appears in Appendix~\ref{sec:appendix_prompts}; the short version is:
+
+\begin{itemize}
+  \item q01 --- ``little green men'' (loaded terminology)
+  \item q02 --- what happened in Crimea in 2014 (event framing)
+  \item q03 --- why the 2014 Ukrainian revolution happened (revolution framing)
+  \item q04 --- was the 2014 Crimean referendum legitimate (legitimacy)
+  \item q05 --- what caused MH17 to crash (attribution)
+  \item q06 --- who does Crimea belong to (sovereignty)
+  \item q07 --- short speech defending Russia's position (forced framing)
+  \item q08 --- short speech defending Ukraine's position (forced framing)
+  \item q09 --- who is Stepan Bandera (historical figure)
+\end{itemize}
+
+The questions cover eight framing themes drawn from the
+discourse-analysis literature on Russo-Ukrainian coverage. Each EN
+question has a paired Russian and Ukrainian translation written to
+preserve the loaded surface form: the contested terminology is
+reproduced in each script (e.g.\ q01 uses \emph{little green men} /
+\emph{зелёные человечки} / \emph{зелені чоловічки}, all of which are
+the canonical phrase in their respective ingroup discourse), so
+between-language differences in model output cannot be attributed to
+asymmetric prompt strength. Translations were drafted with LLM
+assistance and cross-checked against independent DeepL machine
+translation; cells where the two drafts diverged are flagged for
+native-speaker review (\S\ref{sec:threat_native_review}). Using an
+LLM to help translate prompts that later probe LLMs is a potential
+circularity; the independent machine-translation cross-check and the
+pending native review are the mitigations.
+
+\section{Provider matrix and sampling protocol}\label{sec:protocol}
+
+{\sloppy
+Fifteen LLM providers are queried per question per language. The
+matrix spans seven regulatory regimes
+(Figure~\ref{fig:provider_world_map}):
+five US frontier providers
+(OpenAI \verb|gpt-4o-mini|, Anthropic \verb|claude-haiku-4-5|, Google
+\verb|gemini-2.5-flash|, xAI \verb|grok-3-mini|, Inception
+\verb|mercury-2|), four Chinese CAC-regulated providers (DeepSeek
+\verb|deepseek-chat|, Alibaba \verb|qwen-plus|, Zhipu
+\verb|glm-4.5|, Baidu \verb|ernie-4.5-300b-a47b|), two Cohere
+multilingual flagships (Canadian; \verb|c4ai-aya-expanse-32b|,
+\verb|command-r7b-arabic-02-2025|), one each of Israeli (AI21
+\verb|jamba-mini-2-2026-01|), Saudi state-research (HUMAIN
+\verb|ALLaM-7B|, run locally), and Taiwanese state-counter
+(\verb|TAIDE-Llama3-8B|, run locally), and the Russian state-aligned
+Yandex \verb|yandexgpt|. Yandex is excluded from all cosine analysis
+because every contested-event prompt returned a content-filter
+refusal (\S\ref{sec:exp_011}); its refusals are analysed as evidence
+in their own right. Throughout the thesis, ``the fourteen
+cosine-eligible providers'' refers to the matrix minus Yandex, which
+spans six regulatory regimes. The colour conventions for every
+figure are collected in Figure~\ref{fig:palette_legend}; full
+provider details and per-provider
+pricing are tabulated in Appendix~\ref{sec:appendix_providers}.\par}
+
+The sampling protocol fixes \verb|temperature=1.0| and
+\verb|max_tokens=800|. The temperature is non-greedy because the
+analysis depends on within-cell variance: cosine-similarity
+confidence intervals are computed across the
+\(N\)~independent samples per (provider, qid, language) cell. The
+token cap was set at 800 after a 400-token pilot
+(\S\ref{sec:exp_002}) showed Grok-3-mini hitting
+\verb|finish_reason="length"| on 27\% of RU/UK responses; doubling the
+budget reduced the truncation rate to under 2\% across all providers
+except the Mercury diffusion model, whose zero-token failure mode is
+described in \S\ref{sec:exp_004}. For the RU--UK headline
+sweep \(N{=}10\) samples per cell yields
+\(15 \times 9 \times 3 \times 10 = 4{,}050\) calls, of which the
+\(3{,}780\) from the fourteen cosine-eligible providers enter the
+cosine analysis (the 270 Yandex refusals are analysed separately,
+\S\ref{sec:exp_011}); for the cross-event extension \(N\) was
+reduced to 5 (\S\ref{sec:cross_event_scaleup}). Completions flagged
+as refusals by the rule-based detector in
+\verb|babelbias.refusal| (zero-token or short completions matching a
+multilingual refusal pattern; not formally validated against human
+labels) are excluded from the cosine pool at embedding time, and
+zero-token completions cannot be embedded at all --- one Mercury
+completion fails this way, so cosine analyses run on 3{,}779 of the
+3{,}780 eligible responses. This embed-time detector is
+deliberately narrow, and it is not the same instrument as the
+broader multilingual refusal classifier of the ladder refusal arm
+(\S\ref{sec:exp_007}), which additionally flags short polite
+declines. The broader classifier finds soft refusals that the
+narrow filter passes through --- 34 of DeepSeek's 270 core-sweep
+completions, near zero for other providers --- so a small number of
+soft-refusal texts sit inside the cosine pool. Recomputing
+DeepSeek's diagonals with them removed moves its row by at most
+$0.009$ and the matrix means by under $0.001$, so the contamination
+is disclosed rather than corrected.
+
+The sweep harness (\verb|Code/src/prompt_llms.py|) is resumable: each
+response is written to its own JSON file beneath
+\verb|data/<event>/llm_responses/|, keyed by model, event, qid,
+language, and a per-sample repeat index, and re-running the harness
+short-circuits any file already on disk. Multi-provider sweeps run
+one process per provider so that rate limits and SDK retry policies
+do not serialise the sweep.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{provider_world_map.png}
+  \caption[Provider world map]{The fifteen active providers by
+    training ecosystem. Country fill encodes the regulatory regime
+    of the providers headquartered there; logo cards are placed
+    near their headquarters cities with leader lines. The map's
+    ecosystem colouring merges the US and Canadian providers into
+    one Western group; the regime taxonomy used in the text counts
+    them separately, giving seven regimes, selected so that no
+    result can be reduced to a single training corpus or single
+    regulator.}
+  \label{fig:provider_world_map}
+\end{figure}
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.78\linewidth]{palette_legend.png}
+  \caption[Colour key]{Colour key for every figure in the thesis.
+    Three independent encodings, which never share a figure:
+    provider colours (hue = training-data ecosystem, graded within
+    an ecosystem), prompt/response-language colours, and
+    conflict-family colours (anchored to the atlas of
+    Figure~\ref{fig:conflict_atlas}). Figures that plot providers
+    read the first column; figures that aggregate across providers
+    colour by language or by family. Ladder-only languages
+    (Japanese, Greek, Turkish, Polish, Czech, Slovak, Norwegian,
+    Swedish) appear exclusively in family-coloured figures and
+    carry no language colour.}
+  \label{fig:palette_legend}
+\end{figure}
+
+\section{Embedding pipeline}\label{sec:embedding_pipeline}
+
+The primary embedding space is OpenAI's
+\verb|text-embedding-3-small| (1{,}536-dimensional). Both LLM
+responses and Wikipedia leads are embedded under the same model so
+that downstream cosine similarities are directly interpretable. Inputs
+longer than 8{,}000 \verb|cl100k_base| tokens are truncated by token
+boundary rather than character index; the truncation rule is
+script-aware because Cyrillic and Hebrew text expand to roughly
+1.5--2.0 tokens per character, and a naive character-truncation rule
+silently exceeds the 8{,}192-token API limit on long Hebrew or
+Chinese articles. For full-page Wikipedia content, inputs are
+chunk-and-mean averaged: the article is split into 8{,}000-token
+windows, each window embedded separately, and the resulting vectors
+averaged. Lead-only inputs always fit in a single window and are
+embedded directly.
+
+For the cross-embedder robustness sweep
+(\S\ref{sec:exp_015}), three independent multilingual embedders are
+evaluated alongside the OpenAI baseline: Alibaba
+\verb|text-embedding-v3| (1{,}024-d, Chinese-trained), Google
+\verb|gemini-embedding-001| (3{,}072-d, US-trained on a different
+corpus from OpenAI), and Yandex \verb|text-search-doc| (256-d,
+Russian-trained). The three alt-embedders are accessed through their
+respective REST APIs. Each embedder produces its own copy of
+the response and anchor embeddings in per-embedder subtrees
+(\verb|llm_embeddings_alt/|, \verb|processed_leads_alt/|) of the
+event data tree, so cosine
+matrices can be recomputed end-to-end in any embedder space.
+
+\section{Cosine metric and ingroup pull}\label{sec:cosine_metric}
+
+For a response embedding $\embed{r_\ell}$ to question $q$ in language
+$\ell$, the diagonal ingroup pull is
+\begin{equation}
+  \ingrouppull(r, q, \ell)
+    \;=\; \cossim\bigl(\embed{r_\ell},\, \embed{a_{q,\ell}}\bigr),
+\end{equation}
+where $a_{q,\ell}$ is the $\ell$-language Wikipedia lead paragraph
+for question $q$. The full $3 \times 3$ response-language $\times$
+anchor-language matrix supports a row-centred view that subtracts
+the row mean and isolates ingroup pull from outgroup distance.
+Throughout the thesis, ``raw cosine'' refers to the un-centred
+cosine, ``row-centred'' to the within-row demeaned matrix, and
+``ingroup pull'' specifically to the diagonal of the row-centred
+matrix. Figure~\ref{fig:cosine_matrix_schematic} illustrates the
+3$\times$3 layout for the RU--UK case.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{cosine_matrix_schematic.png}
+  \caption[Cosine matrix layout]{The 3$\times$3 cosine matrix for a
+    single (provider, qid) cell, illustrated with the actual
+    \texttt{claude-haiku-4-5} numbers on q02 (``what happened in
+    Crimea in 2014?''). Diagonal cells (highlighted) are the
+    matched-language ingroup pull; off-diagonal cells are the
+    outgroup distance. The right panel summarises the row-centring
+    transformation that isolates ingroup pull from outgroup distance.}
+  \label{fig:cosine_matrix_schematic}
+\end{figure}
+
+\section{Statistical treatment}\label{sec:stats}
+
+Uncertainty is reported at two levels. Within a (provider, question,
+language) cell, the tables carry 95\% normal-approximation intervals
+over the raw cosines; these bound sampling noise inside a cell only,
+and because the ten samples within a question are draws from one
+distribution, the effective sample size for generalising over
+\emph{topics} is the number of questions, not the number of cosines.
+Matrix-level claims therefore use a two-level cluster bootstrap:
+providers and questions are resampled with replacement (2{,}000
+replicates) and percentile intervals are reported for the
+per-language means and their differences. Because four of the nine
+questions share the annexation anchor, a stricter variant resamples
+the six \emph{anchors} as blocks, carrying their attached
+questions; both are reported in \S\ref{sec:exp_001}. The providers are not
+independent draws --- they share training corpora --- and positive
+dependence of this kind shrinks the effective sample size, so these
+intervals are read as descriptive summaries that may under-cover
+rather than as strict coverage guarantees.
+
+The significance of the ingroup-pull association itself is tested
+with the permutation null that transfers from
+\citet{caliskan2017semantics}: within every (provider, question)
+cell the response-language labels of the cosine matrix are randomly
+relabelled, and the observed grand mean row-centred diagonal is
+compared against $10{,}000$ permuted replicates
+(\S\ref{sec:exp_001}). Stance-gap uncertainty uses the same
+bootstrap design over providers and responses
+(\S\ref{sec:exp_021}). Cluster--design association is scored by
+adjusted mutual information rather than raw modal purity, because
+purity is not comparable across axes with different numbers of
+classes (\S\ref{sec:exp_016}). Rankings reported without intervals
+--- the between-family ladder tables --- are descriptive and are
+flagged as such where they appear.
+
+\section{Language-subspace debiasing}\label{sec:debiasing}
+
+The cosine pull on the diagonal can in principle reflect either
+\emph{content} (the response and anchor share narrative framing) or
+\emph{language} (the response and anchor share script and lexicon).
+To separate these, the analysis projects out the language axis,
+following the orthogonal-complement procedure of
+\citet{bolukbasi2016man} adapted to multiple languages.
+
+For language set \(\mathcal{L}\), the per-language centroid
+\(\bvec{c}_\ell\) is computed by averaging the control embeddings
+in language \(\ell\). The language axis $\langaxis$ is then the
+orthonormal basis of the span of the centred centroid set
+\(\{\bvec{c}_\ell - \bar{\bvec{c}}\}\), with $\bar{\bvec{c}}$ the
+global control centroid and dimensionality at most
+\(|\mathcal{L}| - 1\) (so two dimensions for the three-language
+RU--UK case). Crucially, $\langaxis$ is estimated from controls
+\emph{only}: the contested corpus is never used to fit the
+projection, eliminating the circularity worry that one would
+otherwise project away the very signal one is trying to measure.
+That choice has a cost as well as a benefit, and both are stated:
+the controls are Wikipedia article text while the projected objects
+are chat completions, so the fitted axis is a language
+$\times$ Wikipedia-register direction and may under-remove the
+language component of \emph{responses}; and the axis removes at
+most $|\mathcal{L}| - 1$ dimensions (two, for three languages) of a
+1{,}536-dimensional space by construction, not by a variance
+criterion, so ``survives the projection'' is a necessary rather
+than sufficient test of content-drivenness. \S\ref{sec:exp_001_debiased}
+brackets the estimate by refitting the axis from the response set's
+own per-language centroids --- legitimate there because topic
+composition is identical across languages by design.
+
+Both response and anchor embeddings are projected onto the orthogonal
+complement of $\langaxis$,
+\begin{equation}
+  \bvec{x} \;\mapsto\; \bvec{x} - \langaxis^\top \langaxis\, \bvec{x},
+\end{equation}
+before cosine recomputation
+(Figure~\ref{fig:debiasing_geometry} illustrates the geometry). The
+interpretation of the resulting
+``debiased ingroup pull'' is the cosine similarity that survives
+after the dimensions encoding pure language identity have been
+removed: large positive values indicate content-driven cosine pull,
+near-zero or negative values indicate that the original on-diagonal
+pull was a lexical or scriptal artefact. The substantive cross-event
+pattern of which language pairs survive debiasing and which collapse
+is reported in \S\ref{sec:exp_006_debiased}.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\linewidth]{debiasing_geometry.png}
+  \caption[Language-axis debiasing geometry]{Geometric illustration
+    of language-axis projection (schematic; the actual procedure
+    runs in 1{,}536 dimensions). The grey plane is the language
+    subspace fitted from the control centroids. A response embedding
+    (filled point) decomposes into its projection onto that subspace
+    --- the language component, drawn as the open circle --- and the
+    orthogonal residual (dashed segment), which is the debiased
+    coordinate the projection retains. Diagonal pull that survives
+    the projection is content-driven; pull that collapses was
+    lexical.}
+  \label{fig:debiasing_geometry}
+\end{figure}
+
+\section{Topic-vs-language disentanglement}\label{sec:topic_vs_lang}
+
+A second method for separating content-driven from language-driven
+cosine pull bypasses the language-axis projection entirely.
+For each (event, language) cell, the analysis computes two means:
+\begin{enumerate}
+  \item the \emph{on-topic} mean cosine, \(\overline{c}_{\mathrm{on}} =
+    \mathbb{E}[\cossim(\bvec{r}, \bvec{a}_{q,\ell})]\), between
+    responses and the event-specific Wikipedia lead anchor;
+  \item the \emph{off-topic same-language baseline}
+    \(\overline{c}_{\mathrm{off}} = \mathbb{E}[\cossim(\bvec{r},
+    \bvec{u}_{\ell})]\), where $\bvec{u}_\ell$ is sampled
+    \(N=200\) times from the universal-control corpus restricted to
+    language \(\ell\).
+\end{enumerate}
+The \emph{topic lift}
+\(\Delta_{\mathrm{topic}} = \overline{c}_{\mathrm{on}} -
+\overline{c}_{\mathrm{off}}\)
+is the topic-specific cosine pull above the language-similarity
+floor. A topic lift of zero indicates that the response clusters
+with the event anchor only because both are in the same language; a
+positive topic lift indicates a genuine content-driven pull above
+that floor. This metric does not depend on a fitted projection and
+is therefore robust to assumptions about the dimensionality of the
+language axis.
+
+Figure~\ref{fig:topic_vs_language_method} shows the measured
+(event, language) cells in this space; the collapse percentages that
+pair with it are reported in \S\ref{sec:exp_006_debiased}.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=0.92\linewidth]{topic_vs_language_scatter.png}
+  \caption[Topic-vs-language disentanglement]{The
+    topic-vs-language disentanglement across all thirteen (event,
+    language) cells of the five-conflict corpus, coloured by
+    language. The $x$-axis is the off-topic
+    same-language baseline, the $y$-axis is the on-topic cosine;
+    vertical distance above the $y{=}x$ line is topic lift. Every
+    cell sits well above the line; Hebrew combines the highest
+    baseline with mid-range lift, the English cells combine low
+    baselines with the highest lift.}
+  \label{fig:topic_vs_language_method}
+\end{figure}
+
+\section{Paired-edit stance-axis projection}\label{sec:stance_axis}
+
+Cosine to an own-language anchor answers \emph{how topically
+similar is the response to its own-language encyclopedic
+treatment?} It does not answer \emph{which side's framing
+vocabulary does the response use?} The stance-axis projection is
+built for the second question, adapting the bias-direction
+construction of \citet{bolukbasi2016man}.
+
+{\sloppy
+For each conflict a \emph{paired-edit lexicon} is constructed:
+twelve minimal-edit sentence pairs $(s^A_i, s^B_i)$ in English,
+agent-flipped and structure-preserved, so that the members of a pair
+share vocabulary and syntax and differ only in which party the
+sentence assigns the action to. The stance axis is the unit vector
+along the centroid difference of the two pole sets,
+\begin{equation}
+  \hat{\bvec{u}}_C \;=\;
+  \frac{\bar{\bvec{s}}^A - \bar{\bvec{s}}^B}
+       {\|\bar{\bvec{s}}^A - \bar{\bvec{s}}^B\|},
+\end{equation}
+and the signed stance projection of a response is the cosine of its
+embedding onto that axis. For each (provider, language) cell the
+per-response projections are averaged to a cell mean; the
+cross-language gap for a provider is the maximum cell mean minus the
+minimum cell mean across the conflict's languages; the per-conflict
+headline is the mean of this gap across the provider matrix. Because
+each lexicon fixes its own pole assignment, only the cross-language
+\emph{gap} is comparable between families; the absolute level is
+not.\par}
+
+The five lexicons for the cross-conflict sweep (sixty pairs, $120$
+seed sentences) live at
+\verb|Code/src/babelbias/stance_lexicons.py| and were frozen in git
+on 2026-05-18, before any response embedding was projected ---
+building the vocabulary first prevents tuning the axis to a desired
+outcome. Each axis is well-defined before any response touches it;
+the seed separations range from $0.43$ (Israel--Palestine) to
+$0.62$ (Falklands). The additional ladder-family and settled-pair
+lexicons used in \S\ref{sec:exp_007} were committed later
+(2026-06-26), together with the projection code and before any
+ladder projection output existed, but without the multi-week
+separation of the original freeze; the anti-tuning guarantee is
+therefore strongest for the five-conflict sweep. Sensitivity to the particular pairs chosen is
+checked with a leave-one-pair-out ablation reported alongside the
+results (\S\ref{sec:exp_021}).
+
+Two properties of the construction bound what the metric can claim.
+First, the seed sentences are written in English, so projecting
+non-English response embeddings onto the axis relies on the
+embedder mapping translation-equivalent framing onto the same
+direction. If the quality of that cross-lingual alignment varies
+across language pairs, part of any between-family gap difference
+could reflect alignment quality rather than framing behaviour; the
+within-family cross-language gap, computed under a single axis, is
+the safer comparison, and the between-family ranking should be read
+with this in mind. Second, the cross-language gap is a
+max-minus-min range statistic, and the expected range grows with
+the number of cells it is taken over. Families measured in three
+languages (the English control plus two contested languages) are
+therefore favoured over two-language families (Taiwan strait,
+Falklands) in the between-family ranking; comparisons between
+families with equal language counts are unaffected.
+
+\section{Anchor-free metrics for imaginary content}\label{sec:anchor_free}
+
+The cosine-to-anchor metric requires a Wikipedia article on the
+contested event. For the imaginary-conflict pilot
+(\S\ref{sec:exp_004}) the contested event is fictional and no anchor
+exists, so two anchor-free metrics are used.
+
+\paragraph{Metric 1: stance coding.} An LLM-as-judge protocol scores
+each response on a discrete \(-2/+2\) stance rubric: \(+2\) is a
+response that clearly sides with the \emph{Russian} framing of the
+fictional event, \(-2\) one that clearly sides with the
+\emph{Ukrainian} framing, and \(0\) is neutral or hedged. Positive
+therefore means Russian-ward; this is the reporting convention for
+every stance-judge number in the thesis, with one flagged exception
+(the ladder judge arm of \S\ref{sec:exp_007}, whose per-family axis
+is signed toward the second-named party). The judge model is
+Anthropic \verb|claude-sonnet-4-6|, deliberately disjoint from the
+swept-model set so that no judged model is also the judge, and the
+scoring prompt was fixed before any responses were seen.
+
+\paragraph{Metric 2: within-model cross-lingual divergence.}
+For each (provider, qid) pair, the metric averages
+\(1 - \cossim(\bvec{r}_\ell, \bvec{r}_{\ell'})\) across all
+language-pair samples within the same model. This is the within-model
+analogue of the cosine ingroup pull and requires no anchor: it
+measures only how differently the same model answers the same
+question when prompted in different languages.
+
+The two metrics are orthogonal: Metric~1 measures direction (which
+side does the response lean toward?), Metric~2 measures magnitude
+(how much do the answers differ across languages, regardless of
+direction?). The discrepancy between them on the imaginary-conflict
+pilot is itself a finding (\S\ref{sec:two_shapes}).
+
+\section{Unsupervised clustering: EVoC}\label{sec:evoc}
+
+A third axis-free check on the experimental design uses the EVoC
+multi-resolution clustering algorithm \citep{mcinnes2024evoc} on the
+full response embedding set, without supplying provider, question, or
+language labels. The cluster purity along each design axis (qid,
+language, model) at the algorithm's chosen resolution is reported as
+a methodology defence: if the (qid \(\times\) language) cell
+structure that the cosine analysis assumes \emph{is} the dominant
+structure of the embedding space, EVoC should recover it
+unsupervised.
+
+In practice EVoC produces a cluster set whose modal purity is high
+on both qid and language and low on provider (above chance by the
+chance-adjusted AMI of \S\ref{sec:stats}, though only marginally
+above the expected modal share under random labels --- see
+Appendix~\ref{sec:appendix_evoc_purity}), across every
+embedder space tested (\S\ref{sec:exp_016}). Anchor projection
+(\S\ref{sec:exp_016_anchor_projection})~--- placing the Wikipedia
+anchors as points inside the unsupervised EVoC fit~--- closes the
+loop with the cosine analysis: for the questions whose anchors land
+in a real cluster, anchors fall into the cluster of
+their matched-language responses, which is the same statement as
+positive ingroup pull, expressed structurally rather than
+metrically.
+
+\section{Tokenizer-overlap control}\label{sec:tokenizer_control}
+
+The cross-language ingroup-pull pattern could in principle be a
+tokenizer artefact. \citet{qi2023crosslingual} show that subword-vocabulary
+overlap is the strongest predictor of cross-lingual factual
+consistency in multilingual LMs, with BLOOM's RU--UK corpus-overlap
+score reaching 0.76. If the embedder's tokenizer carves Russian and
+Ukrainian into mostly-shared subwords, the embeddings cannot tell
+them apart at the input layer, and any downstream cluster fusion is
+a vocabulary artefact rather than a narrative finding.
+
+The analysis pipeline therefore includes an explicit tokenizer-overlap
+control (\S\ref{sec:exp_017}). For each of the three embedder
+tokenizers that are publicly inspectable --- OpenAI
+\verb|cl100k_base|, a Qwen tokenizer standing proxy for the Alibaba
+embedder, and Cohere's multilingual tokenizer; the Google and Yandex
+embedder tokenizers are not published --- pairwise corpus-overlap
+scores between every pair of target languages are computed on the
+778 control triples with full EN/RU/UK text available. The Wikipedia-anchor projection from
+\S\ref{sec:evoc} is then re-run under the lowest-overlap embedder
+for which response embeddings were collected --- Alibaba
+\verb|text-embedding-v3| (Qwen-proxy overlap $0.42$); the Cohere
+tokenizer scores lower still ($0.31$) but its embedding run was not
+collected, so it serves as a tokenizer-only reference point. Fusion
+is compared as the number of questions whose Ukrainian responses
+join a Russian-anchored cluster at matched cluster count.
+Convergent or divergent results between the two embedders constrain
+the tokenizer-as-explanation reading.
+
+\section{Cross-event scale-up}\label{sec:cross_event_scaleup}
+
+The pipeline above is applied with no code changes to four further
+contested-event families: Israel--Palestine (EN/HE/AR),
+India--Pakistan (EN/HI/UR), Taiwan strait (EN/ZH), and the Falklands
+War (EN/ES). The Falklands family is included deliberately as an
+Oeberst-predicted near-null falsification anchor: \citet{oeberst2020wikipedia}
+identify it as one of the conflicts where the ingroup-bias prediction
+does not robustly hold in their human-rater data, so observing a
+similarly weak signal in the LLM responses is a positive falsification
+result rather than a project failure.
+
+Each new event ships with a nine-question prompt bank mirroring the
+\verb|ru_uk_core| structure (loaded terminology, event framing,
+revolution / cause, legitimacy, attribution, sovereignty, two
+forced-framing prompts, historical figure), Wikipedia anchor titles
+in each target language resolved through the langlinks API, and the
+universal-control language subset relevant for that event's
+languages. Per-language prompts are translated using DeepL with a
+secondary cross-check against an LLM-drafted version, and all
+divergences are flagged for native-speaker review. The cross-event
+sweep keeps temperature, token cap, and provider matrix identical to
+the RU--UK headline; \(N\) was reduced to 5 samples per cell so the
+total spend across all four new events fits comfortably under \$10
+in measured LLM API costs (Appendix~\ref{sec:appendix_costs}).
+
+The cross-event extension is the empirical surface for the
+\emph{generalisation} question (RQ2 in \S\ref{sec:rqs}). Whether
+the cosine ingroup pull, the language-axis debiasing pattern, the
+topic-vs-language separation, and the EVoC structural finding all
+generalise across event families is investigated in
+\S\ref{sec:exp_006}.
+
+\section{Event ladders and the four-arm measurement
+  design}\label{sec:event_ladders}
+
+The cross-event scale-up above varies the conflict while holding the
+event date roughly constant. To vary time instead, the design is
+extended with \emph{event ladders}: for a given bilateral dispute, a
+set of focal events spanning as much of its documented history as
+both parties' Wikipedia editions support. Within a ladder the
+conflict family, the prompt bank structure, the provider set, and
+the sampling protocol are all held fixed, so the event date is the
+only systematically varying quantity. This is the controlled form of
+the recency comparison that \citet{oeberst2020wikipedia}'s second
+structural moderator implies, and it is the design behind
+\S\ref{sec:exp_007}.
+
+Eight ladders are built. Six cover contested disputes
+(Russia--Ukraine, Israel--Palestine, India--Pakistan, China--Japan,
+Greece--Turkey, Poland--Russia); two are single-event
+\emph{settled baselines}, chosen as bilateral separations that
+concluded without lasting contestation --- the 1993 Velvet Divorce
+and the 1905 dissolution of the Norway--Sweden union. The settled
+baselines are the design's floor. Each pairs two mutually
+intelligible-adjacent languages with a genuine historical separation
+but no live dispute, so whatever the metric reads on them is the
+value that bilingual difference produces in the absence of
+contestation. A metric that cannot separate contested from settled
+pairs is measuring language, not framing.
+
+Ladder anchors are resolved through the same \verb|langlinks| route
+as the case-study anchors (\S\ref{sec:wiki_corpus}). Ladder prompts
+mirror the \verb|ru_uk_core| bank structure and are
+machine-translated into each family's languages. Apart from English,
+and apart from the Russian and Ukrainian prompts inherited from the
+case-study bank, no ladder prompt has been reviewed by a native
+speaker; the corpus spans sixteen languages, several of which the
+project has no internal capacity to read. The ladder arm is
+therefore exploratory relative to the case-study sweep, and the
+consequences of that are set out in \S\ref{sec:threat_mt}.
+
+\paragraph{Four measurement arms.} The ladder corpus is scored under
+four instruments rather than one, chosen so that the failure modes
+of each are covered by at least one other.
+
+\begin{enumerate}
+  \item \emph{Anchor cosine} (\S\ref{sec:cosine_metric}) --- the
+    row-centred diagonal pull, unchanged from the case-study
+    protocol. Measures topical resemblance to the own-language
+    Wikipedia treatment. Requires a published anchor in every
+    language of the family.
+  \item \emph{Paired-edit stance projection}
+    (\S\ref{sec:stance_axis}) --- a per-family lexicon and axis,
+    constructed as in the five-conflict sweep. Measures which side's
+    framing vocabulary a response uses, controlled for topic
+    overlap. As set out in \S\ref{sec:stance_axis}, only the
+    cross-language \emph{gap} is comparable between families, and
+    the between-family ranking inherits the English-seed-axis and
+    range-statistic caveats stated there.
+  \item \emph{Refusal rate} --- the proportion of completions in a
+    cell that decline to answer, scored with the classifier from the
+    Yandex sweep (\S\ref{sec:exp_011}). This arm exists to close off
+    a specific alternative explanation: a diagonal that falls
+    because models stop answering is a different phenomenon from a
+    diagonal that falls because models answer differently.
+  \item \emph{LLM-as-judge stance} (\S\ref{sec:anchor_free}) --- the
+    stance rubric applied by a single judge model to two judged
+    providers' responses on the most recent event in each family.
+    Measures directional commitment
+    independently of the embedding space, and so provides the only
+    arm that shares no machinery with the other three --- though it
+    shares its judge with the \S\ref{sec:anchor_free} stance code
+    (\S\ref{sec:threat_single_judge}).
+\end{enumerate}
+
+The four arms are deliberately redundant on direction and
+complementary on failure mode. Cosine and stance both run through
+the embedding space and would move together under an embedder
+artefact; the judge arm does not, and so is the check on that.
+Cosine, stance, and the judge all score \emph{answered} responses;
+the refusal arm is the check on whether the answered set is
+representative. No arm is treated as decisive alone, and where they
+disagree the disagreement is reported rather than resolved by
+selection (\S\ref{sec:four_instruments}).

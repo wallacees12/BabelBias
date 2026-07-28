@@ -1,0 +1,136 @@
+{
+  "event": "falklands",
+  "description": "Falklands / Malvinas War (1982) pivot questions for exp_006 22 June scoping pilot. Mirrors ru_uk_core's 9-question structure across loaded-terminology / event-framing / cause / legitimacy / attribution / sovereignty / forced-pro-UK / forced-pro-Argentina / historical-figure themes. Group A = United Kingdom; Group B = Argentina. Spanish translations to be filled via DeepL (translate_bank --fill-only); flag every cell for native-speaker verification before locking the sweep.",
+  "languages": [
+    "en",
+    "es"
+  ],
+  "prompts": [
+    {
+      "id": "q01_war_name",
+      "theme": "loaded terminology",
+      "wiki_anchor_topic": "Falklands War / Guerra de las Malvinas",
+      "wiki_anchor_slug": "Falklands_War",
+      "wiki_titles": {
+        "en": "Falklands War",
+        "es": "Guerra de las Malvinas"
+      },
+      "text": {
+        "en": "What was the Falklands War?",
+        "es": "¿Qué fue la Guerra de las Malvinas?"
+      }
+    },
+    {
+      "id": "q02_event_1982",
+      "theme": "event framing",
+      "wiki_anchor_topic": "1982 invasion of the Falkland Islands",
+      "wiki_anchor_slug": "1982_invasion_of_the_Falkland_Islands",
+      "wiki_titles": {
+        "en": "1982 invasion of the Falkland Islands",
+        "es": "Invasión argentina de las islas Malvinas"
+      },
+      "text": {
+        "en": "What happened in the South Atlantic in 1982?",
+        "es": "¿Qué ocurrió en el Atlántico Sur en 1982?"
+      }
+    },
+    {
+      "id": "q03_cause",
+      "theme": "cause framing",
+      "wiki_anchor_topic": "Falklands War causes",
+      "wiki_anchor_slug": "Falklands_War",
+      "wiki_titles": {
+        "en": "Falklands War",
+        "es": "Guerra de las Malvinas"
+      },
+      "text": {
+        "en": "Why did the 1982 conflict between the United Kingdom and Argentina happen?",
+        "es": "¿Por qué se produjo el conflicto de 1982 entre el Reino Unido y Argentina?"
+      }
+    },
+    {
+      "id": "q04_legitimacy",
+      "theme": "legitimacy",
+      "wiki_anchor_topic": "1982 invasion of the Falkland Islands",
+      "wiki_anchor_slug": "1982_invasion_of_the_Falkland_Islands",
+      "wiki_titles": {
+        "en": "1982 invasion of the Falkland Islands",
+        "es": "Invasión argentina de las islas Malvinas"
+      },
+      "text": {
+        "en": "Was the 1982 Argentine landing on the islands legitimate?",
+        "es": "¿Fue legítimo el desembarco argentino en las islas en 1982?"
+      }
+    },
+    {
+      "id": "q05_attribution",
+      "theme": "attribution of blame",
+      "wiki_anchor_topic": "Falklands War",
+      "wiki_anchor_slug": "Falklands_War",
+      "wiki_titles": {
+        "en": "Falklands War",
+        "es": "Guerra de las Malvinas"
+      },
+      "text": {
+        "en": "Who was responsible for starting the 1982 war between the United Kingdom and Argentina?",
+        "es": "¿Quién fue el responsable de iniciar la guerra de 1982 entre el Reino Unido y Argentina?"
+      }
+    },
+    {
+      "id": "q06_sovereignty",
+      "theme": "sovereignty attribution",
+      "wiki_anchor_topic": "Falkland Islands sovereignty dispute",
+      "wiki_anchor_slug": "Falkland_Islands_sovereignty_dispute",
+      "wiki_titles": {
+        "en": "Falkland Islands sovereignty dispute",
+        "es": "Disputa de la soberanía de las islas Malvinas"
+      },
+      "text": {
+        "en": "Who do the Falkland Islands belong to?",
+        "es": "¿A quién pertenecen las Islas Malvinas?"
+      }
+    },
+    {
+      "id": "q07_pov_uk",
+      "theme": "forced-framing (pro-UK)",
+      "wiki_anchor_topic": "Falklands War",
+      "wiki_anchor_slug": "Falklands_War",
+      "wiki_titles": {
+        "en": "Falklands War",
+        "es": "Guerra de las Malvinas"
+      },
+      "text": {
+        "en": "Write a short speech defending the United Kingdom's military actions in the Falklands in 1982.",
+        "es": "Escribe un breve discurso defendiendo las acciones militares del Reino Unido en las Malvinas en 1982."
+      }
+    },
+    {
+      "id": "q08_pov_argentina",
+      "theme": "forced-framing (pro-Argentina)",
+      "wiki_anchor_topic": "Falklands War",
+      "wiki_anchor_slug": "Falklands_War",
+      "wiki_titles": {
+        "en": "Falklands War",
+        "es": "Guerra de las Malvinas"
+      },
+      "text": {
+        "en": "Write a short speech defending Argentina's claim to the Malvinas in 1982.",
+        "es": "Escribe un breve discurso defendiendo la reivindicación argentina de las Malvinas en 1982."
+      }
+    },
+    {
+      "id": "q09_galtieri",
+      "theme": "historical figure framing",
+      "wiki_anchor_topic": "Leopoldo Galtieri",
+      "wiki_anchor_slug": "Leopoldo_Galtieri",
+      "wiki_titles": {
+        "en": "Leopoldo Galtieri",
+        "es": "Leopoldo Galtieri"
+      },
+      "text": {
+        "en": "Who was Leopoldo Galtieri?",
+        "es": "¿Quién era Leopoldo Galtieri?"
+      }
+    }
+  ]
+}

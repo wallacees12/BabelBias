@@ -1,0 +1,680 @@
+\chapter{Discussion}\label{ch:discussion}
+
+Chapter~\ref{ch:experiments} ends with a problem. On the same
+Russo-Ukrainian conflict, four measurement instruments do not agree
+on which language the cross-lingual bias points toward: anchor
+cosine pulls English-ward at $+0.175$ and paired-edit stance
+projection compresses to $+0.033$, both on the real-event corpus;
+the prose-stance judge tilts Ukrainian-ward at $-0.084$ on the
+imaginary corpus; and
+\citet{li2024borderlines}'s discrete MCQ flips Russian-ward in
+vanilla GPT-4, an external published result on a model outside the
+matrix. A multilingual-bias finding that depends on which
+instrument was used is either an instrument story or a phenomenon
+story, and the chapter has to decide. This discussion argues for the
+second reading: the four instruments measure different things on the
+same model, and the disagreement between them is substantive rather
+than an artefact of noise.
+
+\section{Robust findings}\label{sec:robust_findings}
+
+The headline cross-lingual ingroup-pull finding is more thoroughly
+stress-tested than the original thesis proposal required. The
+\emph{sign} of the pull --- responses embed closer to the own-language
+Wikipedia anchor than to other-language anchors --- holds on the
+English diagonal for all fourteen cosine-eligible providers and on
+all three diagonals for thirteen of the fourteen, across six
+regulatory regimes
+(\S\ref{sec:exp_014}); at the per-language level it holds across
+all four embedders spanning four
+ecosystems (\S\ref{sec:exp_015}), under a 2$\times$ change in token
+budget (\S\ref{sec:exp_002}), under unsupervised clustering that
+recovers the design with no axis supervision (\S\ref{sec:exp_016}),
+across five conflict families spanning six writing systems
+(with the Taiwan-strait Chinese cell as the single marginal
+exception, \S\ref{sec:exp_006}), and across eight bilateral
+disputes and 31
+events spanning a millennium, against two settled-dispute baselines
+that sit at the floor of the contested range and remain below it
+under the length-matched anchor control --- narrowly at the 2022
+cell, whose matched margin is $+0.007$
+(\S\ref{sec:exp_007}). On
+the Falklands the magnitude collapses to $+0.05$,
+functioning as a falsification anchor for the pipeline rather than a
+counterexample to it. The sign is the load-bearing claim. The
+settled baselines calibrate the raw floor, with the qualification
+\S\ref{sec:exp_007} develops: the settled pairs' mutual
+intelligibility mechanically compresses their attainable pull, so
+the raw settled-vs-contested magnitude separation is partly an
+anchor-geometry effect and cannot by itself attribute the contested
+families' higher raw pull to contestation.
+
+One framing carried through earlier chapters has to be given up
+here. The Falklands near-null was read as an instance of
+\citet{oeberst2020wikipedia}'s recency--strength gradient, and more
+broadly the expectation was that a model reproducing its training
+distribution would inherit that gradient along with the bias. The
+event ladders test this directly and it does not hold. Within
+conflict families the correlation between event date and pull splits
+three positive against three negative, and events from 1453 and 1772
+return pull well above the 1982 Falklands figure. The model
+inherits the \emph{direction} of Wikipedia's ingroup bias without
+inheriting its \emph{temporal structure} --- which is a more
+interesting result than the confirmation would have been, because it
+separates the source-side mechanism of \S\ref{sec:mechanisms} from
+the simple corpus-reproduction story. What produces the Falklands
+near-null remains open; recency is no longer an available answer.
+
+The finding that survives is thus an ingroup pull that is
+\emph{topical} rather than \emph{positional}, and this is what
+reconciles it with \citet{durmus2023globalopinionqa}'s Linguistic
+Prompting null rather than contradicting it. Their result is that
+prompting in a language does not move a model toward that
+language community's opinions; the result here is that prompting in
+a language does move the response toward that language's
+encyclopedic treatment of the event. Both can hold at once because
+resembling a corpus and adopting its side are different things ---
+the argument developed in \S\ref{sec:four_instruments}. The
+contribution is to have generalised the comparison from opinion
+elicitation to free-form generation about contested events, scaled it
+from one provider to a fifteen-provider matrix, and grounded it
+against both a falsification anchor and two settled-dispute
+baselines that the original study did not include.
+
+\section{Falsified framings}\label{sec:falsified_framings}
+
+Three stronger framings the project carried at various points do not
+survive.
+
+The \emph{magnitude ordering} EN${\gg}$RU${>}$UK is OpenAI-specific.
+Under three other embedders the pattern flattens to
+EN${\approx}$UK${>}$RU, and the Russian-trained Yandex embedder gives
+Ukrainian responses \emph{more} pull than Russian responses
+($+0.090$ vs $+0.042$). The ordering is a property
+of the OpenAI embedding space, not of the responses, and the thesis
+prose treats it as such throughout.
+
+The literal ``models default to a Russian framing on imaginary
+contested events'' reading is falsified on three independent
+measurement arms --- cosine divergence, prose register, and the
+stance judge --- none of which returns a Russian-ward mean. What is
+there instead is the two-mode claim of \S\ref{sec:two_modes}.
+
+The lexical-versus-content cut from
+\S\ref{sec:exp_001_debiased} --- ``UK pull is lexical, EN pull is
+content-driven'' --- is sharper than the data support. Under Alibaba
+and Yandex the Ukrainian pull survives the language-axis projection,
+and the cut is itself a property of the OpenAI embedding space. The
+weaker version --- ``the English content signal survives debiasing
+with a $5\%$--$13\%$ collapse in four of the five conflicts
+($38\%$ on the weak Falklands signal); the contested-language
+signals collapse
+asymmetrically ($96\%$ Hebrew, $66\%$ Ukrainian,
+$51\%$ Spanish; $20\%$--$37\%$ for Arabic, Hindi,
+Urdu)'' --- is what the four-embedder panel actually licenses.
+
+\section{Reconciling the four measurement
+  instruments}\label{sec:four_instruments}
+
+The four-way disagreement set up at the end of
+Chapter~\ref{ch:experiments} resolves once each instrument is read
+for what it actually measures. Read this way, the disagreement is
+itself the methodological contribution.
+
+\emph{Anchor cosine} measures topical similarity between a response
+and an own-language Wikipedia article the model has plausibly read in
+training. A high English diagonal pull says: when prompted in
+English, the response is topically closer to the English Wikipedia
+treatment of Crimea than to the Russian or Ukrainian treatments. This
+is a statement about \emph{which corpus the response sounds like}, not
+about \emph{which side the response takes}. English Wikipedia
+treatment of Crimea is a third stance, neither pro-Russian nor
+pro-Ukrainian, and a response that sounds like it can be
+content-neutral on the contestation itself.
+
+This carries a terminological consequence for the thesis's central
+construct. \citet{oeberst2020wikipedia}'s ingroup bias is
+resemblance to \emph{the in-group's own account} --- it presumes
+the language indexes a conflict party. On the Russo-Ukrainian,
+Israel--Palestine, India--Pakistan, and Taiwan families, English
+speakers are not a party, so the English diagonal --- the largest
+number in the thesis --- measures \emph{own-language corpus pull},
+not ingroup bias in Oeberst's party sense; only the Russian,
+Ukrainian, Hebrew, Arabic, Hindi, Urdu, and Chinese diagonals carry
+the party reading. The one family where the English diagonal
+genuinely is an Oeberst-sense ingroup measurement --- the
+Falklands, where English is the language of a disputing party ---
+is precisely where the pull collapses to $+0.05$. That inversion is
+consistent with the corpus-pull reading of the cosine instrument:
+what the diagonal responds to is how distinctive the own-language
+treatment of the event is, not how invested the language community
+is in the dispute, and the Falklands' English-language treatment is
+close to the global English mainstream. The thesis keeps
+``ingroup pull'' as the operational name for the diagonal, but its
+interpretation as in-group \emph{siding} is carried by the stance
+instruments, not by cosine.
+
+\emph{Paired-edit stance projection}, by construction, measures the
+second question. The axis is built from minimal-edit sentence pairs
+that share vocabulary and structure and differ only in which agent
+the sentence assigns the action to; projecting a response onto that
+axis returns a signed scalar that says which side's framing
+vocabulary the response is using, controlled for topic overlap. The
+Russo-Ukrainian gap of $+0.033$ says that the
+cross-language framing gap is small on this corpus --- smaller than
+on India--Pakistan ($+0.131$) or Israel--Palestine
+($+0.117$) --- even though the pair's cosine pull is substantial,
+mid-ranking among the five conflicts. The stance axis is
+finding less framing divergence between Russian and Ukrainian
+responses than between Hindi and Urdu responses, or between Hebrew
+and Arabic responses, despite Russian and Ukrainian indexing two
+internal-narrative communities directly opposed to each other on this
+conflict.
+
+\emph{The Sonnet prose-stance judge on imaginary content} measures
+something different again. The imaginary-conflict pilot removed the
+Wikipedia anchor; the stance judge then coded each response on the
+$-2/{+}2$ axis of \S\ref{sec:exp_004} (positive Russian-ward,
+negative Ukrainian-ward). Per-language
+means EN $-0.092$, RU $+0.010$, UK
+$-0.170$ say that, on an event with no anchor for the model
+to lean on, the directional signal in free-form prose is small and
+tilts Ukrainian-ward overall, not Russian-ward. This is the cleanest
+falsification of the literal national-stance hypothesis in the
+thesis: when the model cannot defer to a training-corpus treatment of
+the event, the residual directional signal does not align with the
+own-language nation.
+
+\emph{The discrete-flip MCQ measurement} of
+\citet{li2024borderlines} reports yet another direction on the same
+Crimea item: vanilla GPT-4 selects the Russian-claimed answer when
+asked in Russian and the Ukrainian-claimed answer when asked in
+Ukrainian. The MCQ measurement forces a binary commitment that the
+prose-generation measurements do not.
+
+The four instruments answer four different questions: which corpus
+the response resembles; which side's framing vocabulary it uses; what
+direction its prose tilts when no anchor is available; and which
+binary commitment it makes when forced to pick. The right reading is
+not to pick a winner but to read all four together. On Russo-Ukrainian
+content, frontier models reproduce a recognisable English-Wikipedia
+\emph{topic} regardless of prompt language, use mostly-shared
+\emph{framing vocabulary} across Russian and Ukrainian, tilt slightly
+Ukrainian-ward in \emph{unanchored prose}, and flip Russian-ward
+under \emph{forced-choice}. The single-instrument national-stance
+question is malformed for this kind of model behaviour; the bias is
+fully described only by the four-way metric panel.
+
+One rival reading must be bounded before this reconciliation can
+carry weight: the four legs differ not only in instrument but in
+corpus and model --- two run on the real-event corpus, the judge on
+the imaginary corpus, and the MCQ leg is an external result on
+vanilla GPT-4, which is not in the matrix and was never run on
+these prompts. Part of the disagreement could therefore be
+corpus or model rather than instrument. The cross-checks bound how
+far that reading goes: the stance projection replicates its
+compression across the five-conflict sweep, and the ladder judge
+arm reproduces the Ukrainian-ward direction on \emph{real} events
+--- though under the same judge model; the second-judge check ran
+on the imaginary corpus --- so the instrument-difference
+reading holds wherever two instruments were run on the same
+corpus. The forced-choice leg is the exception --- it has not been
+run on this corpus or these providers, and the four-instrument
+panel treats it as a literature anchor whose replication here is
+future work, not as a measurement of this corpus.
+
+A scope condition follows directly. The MCQ behaviour
+\citet{li2024borderlines} measures requires a fixed answer space and
+a forced commitment; the cosine behaviour requires a Wikipedia
+anchor; the stance-projection behaviour requires a paired-edit
+lexicon. Each instrument has prerequisites that determine where it
+applies. Reporting a single ``the model is biased toward
+$X$'' headline conceals this.
+
+\section{Two modes of bias on imaginary
+  content}\label{sec:two_modes}
+
+Removing the anchor sharpens a second observation. On the imaginary
+Russo-Ukrainian conflict, two questions in the bank dissociate
+content from direction in opposite ways.
+
+The free-form prose question (``write a 150-word news report'')
+produces the highest cross-lingual content divergence in the bank
+($2.86\times$ same-language baseline) but the lowest stance
+direction (mean $0.00$). Models confabulate different
+incidents in different languages without picking a side: the same
+fictional bridge is placed over three different rivers in three
+languages by Qwen-Plus, with Russian-state phrasing appearing in the
+Russian version only. The direct-attribution question (``who is
+responsible?'') has the inverse: low content divergence
+($1.73\times$) and the strongest directional pull (UK mean
+$-0.56$). Models hedge with the same shape across all three
+languages but lean Ukrainian-ward when they commit.
+
+Bias on imaginary content therefore has two distinct shapes ---
+\emph{content divergence without direction} in free-form prose and
+\emph{directional commitment without content divergence} in
+attribution --- and the literal national-stance hypothesis collapses
+both into one. The same model can be biased on the same fictional
+event in opposite ways depending on the question form. The
+Cohere \verb|command-r7b-arabic-02-2025| swing --- $+0.47$
+(Russian-ward) under Russian prompts to $-0.60$ (Ukrainian-ward)
+under Ukrainian prompts, a $1.07$-point cross-language
+swing on a single fictional incident --- shows the cell-level
+direction can be large, and in this one provider it does align with
+the own-language national framing. What the matrix as a whole shows
+is that no such alignment survives averaging: the per-language
+means are near zero and tilt slightly Ukrainian-ward under
+\emph{all three} prompt languages. The literal national-stance
+hypothesis fails as a description of the provider matrix while
+remaining true of an isolated 7B provider --- a scope distinction
+the single mean conceals.
+
+\section{Candidate mechanisms for the cross-lingual
+  pull}\label{sec:mechanisms}
+
+The cross-lingual ingroup pull is consistent with at least three
+non-exclusive mechanisms; the experiments in this thesis cannot
+discriminate among them.
+
+\emph{Training-corpus density} is one. The English-language web is
+overrepresented in the training corpora of every provider in the
+matrix, and the English Wikipedia article on Crimea is among the
+best-indexed treatments of the topic, giving an English prompt the
+densest possible target to reproduce.
+\citet{zhao2025makieval} have argued that multilingual LLM behaviour
+shifts toward English norms even when prompted in other languages ---
+an ``English Activation'' effect --- and this offers a mechanistic
+story for the cosine pull that does not require the model to hold
+ideological preferences at all. The four-embedder panel weakens this
+reading slightly --- the OpenAI-specific magnitude ordering suggests
+part of the EN ${\gg}$ everything else gap is an embedder property,
+not a generator property --- but does not refute it.
+
+\emph{Cross-lingual transfer between Russian and Ukrainian} is a
+second. The two languages share Cyrillic script, share a substantial
+fraction of subword tokens (\citet{qi2023crosslingual} reports
+$0.76$ overlap for BLOOM's tokenizer; the embedder tokenizers
+measured in \S\ref{sec:exp_017} sit at $0.31$ to $0.53$), and the
+larger Russian web corpus likely supplies a substantial fraction of
+the training signal for Ukrainian generation. The unsupervised
+clustering finding that the Russian and Ukrainian anchors and both
+languages' responses fuse into a single joint cluster on Crimea,
+Maidan, and Bandera (\S\ref{sec:exp_016_anchor_projection}) is
+consistent with this mechanism, though as a symmetric fusion it
+cannot by itself establish the direction of transfer; the
+directional evidence is the asymmetric debiasing collapse of
+\S\ref{sec:exp_001_debiased}. Critically, the tokenizer-overlap
+control rules out subword-vocabulary leakage as the dominant
+explanation: at matched cluster resolution under the
+lowest-overlap embedder, which questions fuse changes but the total
+fusion magnitude does not. What is left is a content-level
+phenomenon, not a tokenizer artefact.
+
+\emph{Pre-training reflection of Wikipedia ingroup bias} is the
+third. \citet{oeberst2020wikipedia} establish that Wikipedia
+articles on intergroup conflicts show systematic ingroup-favourable
+framing in the language of the editing community. A model that
+reproduces the distribution of its training text on contested events
+will reproduce this framing, with no further preference required.
+The Falklands near-null cosine result is consistent with this
+mechanism --- the Falklands edition gap in
+\citet{oeberst2020wikipedia}'s data is among the weakest in their
+sample --- and is the cleanest piece of evidence in this thesis for
+the source-side mechanism. \citet{smirnov2026language} document the
+same phenomenon at the document level on a single Ukrainian
+civil-society text, and the multi-event multi-provider extension in
+this thesis can be read as a scaling test of that observation.
+
+These three mechanisms make overlapping predictions on cosine and
+diverge on the other instruments. Discriminating among them is
+outside the scope of the present work and is flagged in
+\S\ref{sec:future_work}.
+
+\section{YandexGPT and structural inheritance of state-aligned
+  guardrails}\label{sec:yandex_limit}
+
+The YandexGPT finding sits orthogonal to the cosine story. Across
+$270$ Russo-Ukrainian prompts the provider returned the same
+Russian content-filter boilerplate, with no response in any cell. The
+cosine pipeline reads this as null; the unsupervised clustering
+reads it as a tight four-cluster pure-provider pocket, which is the
+embedding-space signature of categorical content filtering.
+
+Read alone, this is a categorical anomaly. Read alongside
+\citet{urman2025silence}'s finding that Western chatbots refuse
+roughly $90\%$ of Russian-language Putin-related queries
+against under $20\%$ of English-language equivalents, it is
+the limit case of the same mechanism: structural inheritance of
+state-aligned content-moderation templates, visible across the
+multilingual matrix at varying intensities. The five-conflict
+extension reported in \S\ref{sec:exp_011} sharpens the reading:
+refusal is steepest where Russian state narratives are most
+directly implicated --- total on the imaginary Russo-Ukrainian
+event, vestigial on the Taiwan strait, with the interest ordering
+read descriptively from the rates rather than fitted to an ex-ante
+proxy --- and within events the one-sided-defence slots are always
+filtered first. A filter graded by state interest and typed by
+question form is not a blunt domain block; it is a policy with a
+topology, and the embedding-space signature recovers that topology
+without access to the policy itself.
+
+The unsupervised method does work here that cosine cannot: the
+graded Yandex refusal pocket, the Mercury-2 Crimea avoidance, and
+the small-open-weight stylistic fingerprint are all visible only
+because the clustering runs alongside the cosine. The methodology
+is therefore best framed as a two-instrument minimum: a magnitude
+metric for the headline pull, and a structure-recovery metric for
+what the magnitude averages away.
+
+\section{Threats to validity}\label{sec:threats}
+
+\subsection{Pilot-scale samples for the stance-judge
+  arm}\label{sec:threat_pilots}
+
+The Sonnet stance-judge code from \S\ref{sec:exp_004_metric1} runs on
+the imaginary-conflict pilot at $n{=}3$ per cell. The headline
+direction --- Ukrainian-ward overall, neutral on free-form prose,
+strongest on q01 attribution --- survives the small sample because
+the per-language means separate by several times the within-cell
+standard deviation. Subtler effects, in particular the
+asymmetric-meta-cognition observation that two providers flag the
+fictional event in only certain languages, do not. Promoting the
+pilot to $n{=}10$ would be a low-cost extension; it was not run, and
+the arm should be read accordingly.
+
+\subsection{Single-judge stance coding}\label{sec:threat_single_judge}
+
+The stance code was generated by Sonnet 4.6 alone; the
+pre-specified plan called for a second judge for inter-rater
+agreement. The disagreement between the Sonnet stance direction
+(Ukrainian-ward) and the cosine direction (English-ward) cannot be
+disentangled from a potential Sonnet-side latent preference on
+Russo-Ukrainian content without a second judge. The event-ladder
+judge arm (\S\ref{sec:exp_007_judge}) does not close this gap: it
+reproduces the Ukrainian-ward direction on a second corpus and a
+different pair of judged providers, but its judge is again Sonnet
+4.6, so every directional judge signal in this thesis passes
+through a single judge model --- and that arm carries its own
+settled-baseline calibration failure besides. The Mercury
+topic-avoidance coding of \S\ref{sec:exp_003} is Sonnet-coded under
+the same limitation.
+
+The pre-specified remediation --- coding a $30$-response stratified
+sample under a second frontier judge from a different provider and
+reporting agreement on the directional sign --- was carried out with
+OpenAI GPT-4o under the locked rubric, verbatim, at temperature
+zero. Of the $28$ responses both judges scored, directional-sign
+agreement is $24/28$ ($86\%$, Cohen's $\kappa = 0.78$) with
+\emph{no} sign inversions anywhere in the sample: every
+disagreement is GPT-4o neutralising a Sonnet nonzero, in both
+directions ($3\times$ negative${\to}0$, $1\times$
+positive${\to}0$). Exact five-point agreement is lower ($54\%$)
+because GPT-4o codes Russian-ward positives one step more extreme;
+stance \emph{intensity} is judge-dependent while stance
+\emph{direction} is not. The Ukrainian-ward direction is therefore
+not attributable to a Sonnet-side latent preference. What remains
+open is narrower: the Mercury coding and the ladder judge arm are
+still single-judge, and the settled-pair calibration failure of
+\S\ref{sec:exp_007_judge} is untouched by this check.
+
+\subsection{Native-speaker review pending}\label{sec:threat_native_review}
+
+The Russian and Ukrainian translations of the prompt bank and the
+Tarasenko Bridge fictional place names (Yarov-Kut, Pridvinsk) have
+not been reviewed by native speakers. Qwen-Plus on q02 flagged
+Yarov-Kut as mapping to a real settlement in Kursk Oblast; the
+finding is documented but the place name has not been remediated.
+Native-speaker review of the full prompt bank and the fictional
+place names is a prerequisite for any publication-track extension.
+
+\subsection{Frontier-scoped claims}\label{sec:threat_scope}
+
+The claim that provider identity is not a structural axis of the
+embedding space is empirically scoped to the twelve providers that
+behave homogeneously on the embedding geometry --- an operational
+set, not a parameter threshold (\S\ref{sec:exp_016}). The two
+locally hosted open-weight 7B models --- ALLaM and TAIDE --- retain
+stylistic signatures that the
+other providers do not, and their same-language baseline
+divergence runs $2$--$4\times$ the frontier rate; the API-served
+\verb|command-r7b|, also 7B, sits inside the frontier band on
+geometry yet carries the largest stance swing of \S\ref{sec:exp_004},
+so homogeneity on one instrument does not transfer to
+another. A residual confound should be named: the two fingerprinted
+models are served through a local quantized Ollama stack while
+every other provider serves full-precision weights over an API, so
+what the design isolates is the serving stack, not parameter count
+or open-weight status --- aggressive quantization alone can
+depress output diversity in exactly this way. ``Providers do not
+structurally matter'' should be read as ``the geometrically
+homogeneous providers do not structurally matter on the (question
+$\times$ language) axis.''
+
+\subsection{Anchor size is confounded with event recency}\label{sec:threat_anchor_length}
+
+The Russia--Ukraine 2022 cell carries both the lowest diagonal pull
+in the ladder corpus and, by a wide margin, its longest and most
+Russian-skewed Wikipedia anchors, so anchor length and event recency
+were not separated in the original design. The pre-specified
+remediation --- re-running against anchors truncated to the shortest
+in their conflict family, which requires only re-embedding --- was
+carried out (\S\ref{sec:exp_007_cosine}). The confound is now
+quantified rather than open: roughly a third of the 2022 deficit
+was anchor length ($+0.075 \to +0.111$ under matching), and the
+residual dip survives as the family minimum. Two caveats remain.
+First, family-minimum matching is aggressive where a family
+contains a stub article --- the China--Japan anchors truncate to 72
+tokens --- so a percentile-floor variant would be a gentler control.
+Second, truncation changes anchor \emph{content}, so matched values
+are comparable only within the matched run, not to the original
+gradient's levels. A residual confound the matching cannot touch:
+the 2022 and 2023 anchor leads were substantially written after
+several providers' training cutoffs, so a model cannot resemble
+anchor content that postdates its knowledge --- a mechanism that
+depresses live-event diagonals independently of framing and works
+against detecting any true recency gradient. Cutoff dates are not
+published for every provider in the matrix, so this is noted
+rather than quantified.
+
+\subsection{Machine-translated ladder prompts}\label{sec:threat_mt}
+
+Apart from English, and apart from the Russian and Ukrainian prompts
+inherited from the case-study bank, every prompt in the event-ladder
+corpus is machine-translated and unreviewed by a native speaker. The
+ladder covers sixteen languages, including several --- Greek,
+Turkish, Japanese, Czech, Slovak, Norwegian, Swedish --- where the
+project has no internal reading capacity at all. A translation that
+weakens or strengthens the loaded surface form of a question would
+move that language's cell without any model behaviour changing.
+The cross-family comparisons in \S\ref{sec:exp_007} should be read
+with this in mind: the within-family temporal comparisons are the
+better-controlled contrast, because the same translation pipeline
+applies across a family's ladder, while between-family magnitude
+rankings inherit whatever per-language translation quality varies.
+Native review is the hardening gate for this arm.
+
+\subsection{English-fitted stance axes}\label{sec:threat_stance_axis}
+
+The paired-edit stance axes are fitted from English seed sentences
+(\S\ref{sec:stance_axis}) and every non-English response is
+projected onto them through the embedder's cross-lingual alignment.
+If that alignment quality varies across language pairs, part of the
+between-family gap differences in \S\ref{sec:exp_021} and
+\S\ref{sec:exp_007_stance} reflects alignment rather than framing
+behaviour; the max-minus-min gap statistic additionally favours
+three-language families over the two-language Taiwan and Falklands
+families. The within-family cross-language gaps, computed under a
+single axis, are the safer contrast, and the Russo-Ukrainian floor
+--- the thesis's main stance-arm claim --- is a within-comparison
+result that survives both caveats. A further unrun sensitivity
+check applies to cosine and stance aggregates alike: the two
+forced-framing questions (q07, q08) enter every aggregate alongside
+the spontaneous questions, and excluding them was not tested. The between-family
+\emph{ranking} should be read as exploratory until the axes are
+re-fitted from native-language seed pairs, which the present design
+does not include.
+
+\subsection{Wikipedia anchors are not culturally
+  neutral}\label{sec:threat_anchors}
+
+The cosine pipeline treats own-language Wikipedia articles as
+anchors. \citet{naous2024beer} argue that even
+own-language Wikipedia carries Western-centric framing on
+non-Western topics. The English-control design of this thesis is
+partially answerable on this point --- a finding that the English
+diagonal pull is content-driven survives the projection onto the
+language subspace, suggesting the English signal is something more
+than language similarity --- but the anchors themselves remain a
+limit on how much the cosine pull can be read as a measurement of
+neutral cross-lingual divergence.
+
+\section{Implications}\label{sec:implications}
+
+Two operational implications follow.
+
+For \emph{multilingual deployment} the relevant question is not
+``which provider is neutral?'' but ``what does neutrality mean
+when the prompt language is part of the framing?'' The cosine evidence shows
+the prompt language --- not the
+provider choice --- is the dominant determinant of which corpus
+the response resembles: frontier cross-provider agreement approaches
+within-provider self-agreement, and provider identity surfaces only
+marginally as a structural axis of the embedding space --- a claim
+scoped to frontier-scale providers
+(\S\ref{sec:threat_scope}). A deployment that wants to
+control the framing of model output on contested topics has to
+control the prompt language; switching frontier providers does not.
+
+For \emph{evaluation of multilingual LLM bias} the four-way metric
+panel argues against single-instrument headlines. Anchor cosine,
+unsupervised clustering, paired-edit stance projection, and discrete
+forced-choice each measure a different facet of cross-lingual
+behaviour, and a paper that reports only one is incomplete. The
+methodology contribution of the thesis is to demonstrate this on a
+single corpus and to map the conditions under which each instrument
+is informative.
+
+\section{Future work}\label{sec:future_work}
+
+Two of the extensions this section previously listed --- the
+length-matched anchor re-run and the second stance judge --- were
+carried out and are now reported in
+\S\ref{sec:threat_anchor_length} and
+\S\ref{sec:threat_single_judge}. Three extensions remain, ordered
+by how much they would strengthen the existing claims.
+
+\emph{Native review of the ladder prompts.} The sixteen-language
+event-ladder corpus (\S\ref{sec:threat_mt}) is machine-translated
+throughout. Native review of even a subset --- the highest-magnitude
+families, Greek--Turkish and Hindi--Urdu --- would convert the
+between-family stance ranking from exploratory to load-bearing.
+
+\emph{Settled-pair judge calibration and full-corpus second
+coding.} The second-judge check establishes directional agreement
+on a stratified sample; extending it to the full $630$-response
+corpus, and calibrating both judges against the settled pairs where
+the ladder judge arm currently miscalibrates
+(\S\ref{sec:exp_007_judge}), would close the remaining judge-side
+gaps. A percentile-floor variant of the anchor matching belongs in
+the same hardening pass
+(\S\ref{sec:threat_anchor_length}).
+
+\emph{The four-way metric reconciliation extended to the full
+provider matrix.} The discrete-flip MCQ measurement of
+\citet{li2024borderlines} on Crimea, Donbas, Sevastopol, and South
+Ossetia ran on a small provider set; running the same MCQ items on
+the provider matrix used here closes the cosine
+vs.\ stance vs.\ judge vs.\ MCQ comparison at single-provider
+granularity and either reproduces the binary--prose disagreement at
+scale or isolates it to GPT-4.
+
+Three further directions are outside the scope of this thesis but
+follow naturally from its design. \emph{Provider-country bias as an
+axis orthogonal to language} --- holding the prompt language fixed
+while varying the provider's regulatory home --- is the obvious
+complement to the language-conditional design used throughout, and
+a contested event on which the provider countries themselves are the
+disputing parties would separate the two axes cleanly. \emph{A
+French-language control on a European provider} would test whether
+the English-ward pull reported here is specific to English or is a
+general flagship-language effect, which the present matrix cannot
+distinguish because its non-English languages are all languages of a
+disputing party. \emph{Three-way rather than binary framing spaces},
+on disputes where the contest is not adequately described by two
+poles, would test whether the paired-edit stance construction of
+\S\ref{sec:stance_axis} generalises beyond the bipolar case it assumes.
+
+\section{Conclusion}\label{sec:conclusion}
+
+The four research questions of \S\ref{sec:rqs} can now be answered
+directly.
+
+\emph{RQ1 --- ingroup pull.} The answer is per-language.
+Decisively yes for English: matrix mean $+0.175$, and still
+$[+0.13, +0.18]$ after the language-axis control --- largely
+content-driven. Yes in raw terms for Russian ($+0.043$) and
+Ukrainian ($+0.026$), whose question-resampled intervals exclude
+zero --- though under the stricter anchor-block resampling of
+\S\ref{sec:exp_001} the Russian interval touches zero, so the raw
+contested-language pulls are resolved only marginally. After the
+control, the Russian residual ($+0.031$, interval
+$[+0.005, +0.06]$) is barely positive and the Ukrainian residual
+($+0.009$, interval $[-0.02, +0.03]$) is indistinguishable from
+zero --- two thirds of
+the Ukrainian pull was lexical, and the remainder is within
+noise. All of this is in the OpenAI embedding space; other
+embedders draw the lexical-content line elsewhere.
+
+\emph{RQ2 --- generality.} The sign of the pull survives across the
+provider matrix and across conflict families: five contested
+families in the scale-up, eight bilateral disputes and 31 events
+across a millennium in the ladder corpus, with two settled-dispute
+baselines at the floor of the cosine arm in raw pull, below every
+contested family under length-matched anchors --- though at the
+2022 cell that separation is a point estimate of $+0.007$, and the
+settled floor is partly mechanical, since the settled pairs'
+mutually intelligible languages compress their attainable pull
+(\S\ref{sec:exp_007}).
+The exceptions are informative rather than damaging: the
+Taiwan-strait Chinese cell is marginally negative, the 7B
+open-weight providers carry stylistic signatures that scope
+provider-agnostic claims to frontier models, and the Russian
+provider refuses categorically --- itself a regime-level finding.
+The recency gradient documented for human editors does not
+transfer: bias direction is inherited without its temporal
+structure.
+
+\emph{RQ3 --- robustness.} The sign is not an embedder artefact: it
+holds under four embedders from four ecosystems, and the
+Russian-trained embedder does not inflate the Russian diagonal. The
+magnitude ordering EN ${\gg}$ RU ${>}$ UK, by contrast, is
+OpenAI-specific and is treated as an embedder property throughout.
+Subword-tokenizer overlap is ruled out as the dominant cause of the
+Russian--Ukrainian cluster fusion: fusion redistributes but does
+not shrink under the lowest-overlap tokenizer.
+
+\emph{RQ4 --- what cosine misses.} A great deal, and systematically.
+The stance-axis projection demotes the Russo-Ukrainian pair from
+mid-ranking on cosine to the floor of the contested families; on
+imaginary content the bias splits into content divergence without
+direction (free-form prose) and directional commitment without
+content divergence (attribution); and refusal and topic avoidance
+are categorical behaviours the cosine metric cannot see at all. The
+four instruments disagree because they measure four different
+things, and the single-instrument question ``which side is the
+model biased toward?'' is malformed for this class of model
+behaviour.
+
+The overall conclusion is twofold. Substantively, of the two
+variables a deployer controls, the prompt language --- not the
+provider --- is the dominant determinant of what a contested-event
+response resembles at frontier scale (question identity,
+which the user supplies, carries more cluster structure than
+either), and what the language
+controls is which corpus the response resembles rather than which
+side the response takes. Methodologically, no single instrument
+suffices to characterise cross-lingual bias in multilingual LLMs;
+the minimum honest report is a panel, and this thesis supplies a
+worked example of what such a panel looks like and where each of
+its instruments stops being informative.

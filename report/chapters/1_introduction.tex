@@ -1,0 +1,288 @@
+\chapter{Introduction}\label{ch:introduction}
+
+\section{Motivation}\label{sec:motivation}
+
+The same Wikipedia article on a contested historical event reads
+differently depending on which language edition one opens.
+\citet{oeberst2020wikipedia} make this observation precise. Across
+thirty-five intergroup conflicts and three studies, they show that
+the language edition of each conflicting party portrays the
+in-group as preferred, more powerful, less immoral, and less
+responsible for the conflict, with the strength of bias predicted
+by conflict recency and the share of in-group editors among the
+article's top contributors. The unit of analysis is the
+human-authored article lead --- exactly the corpus that
+contemporary multilingual large language models are trained on.
+The natural follow-on, taken up by this thesis, is whether the
+same divergence appears when the curator is no longer a human
+editor but a language-conditional LLM. Throughout, \emph{ingroup
+bias} is used in this Oeberst-inherited sense --- systematic
+resemblance to the in-group's own account of an event, a property
+of content measurable without imputing allegiance; whether
+resemblance extends to taking the in-group's side is exactly what
+the stance instruments of Chapter~\ref{ch:experiments} test. One
+scoping note applies from the start: where the prompt language is
+not the language of a conflict party --- English on the
+Russo-Ukrainian pair, for instance --- the same quantity is better
+read as own-language \emph{corpus} pull than as ingroup bias in
+Oeberst's party sense; \S\ref{sec:four_instruments} develops this
+distinction.
+
+The shift in actor matters. Wikipedia's edit history keeps
+disagreement visible and contestable; an LLM response is a single
+answer whose provenance is opaque by construction, so an inherited
+bias that was open on Wikipedia becomes invisible in the model. The
+scale shifts too: language editions are read by communities who
+already share the language, while LLMs are queried by anyone in
+their preferred language --- including readers consulting them
+precisely because they cannot verify the answer in their own
+language, which is exactly the contested-event case.
+
+A precedent literature has begun to map this terrain.
+\citet{durmus2023globalopinionqa} prompt frontier LLMs with
+opinion questions in a respondent's native language and report
+that the responses do not move toward that respondent's
+national opinion distribution --- a null result on the simplest
+version of linguistic prompting. \citet{buyl2024llm} take the
+opposite side: when the prompt asks about a political person,
+the model's implied evaluation correlates with the geopolitical
+alignment of the model's creator country, particularly under
+post-training alignment. \citet{urman2025silence} audit three Western
+chatbots on politically sensitive queries and find that Google
+Bard refuses 90\% of Russian-language Putin queries against
+only 19\% of the English equivalents, with the Russian
+non-response pattern matching the leaked Roskomnadzor block
+list more closely than Bard's own published content policy. \citet{smirnov2026language} provides the
+qualitatively closest parallel: prompting the same model with
+semantically equivalent Russian and Ukrainian renderings of a
+Ukrainian civil-society document produces Russian state-
+discourse vocabulary in the Russian condition and Western
+liberal-democratic vocabulary in the Ukrainian condition.
+The model and the source content are held fixed; the prompt
+language alone shifts the framing.
+
+The contribution of this thesis is not to claim that
+language-conditional bias in multilingual LLMs is a novel
+discovery. It is to provide the multi-event, multi-provider,
+embedding-quantified, English-controlled, and
+imaginary-falsified extension that the precedents themselves
+flag as missing. Where \citet{durmus2023globalopinionqa} test
+one methodology on opinion questions and report a null, this
+thesis tests the same hypothesis on contested-event
+\emph{factual} questions across nine prompts in three languages
+on the 2014 Russo-Ukrainian crisis, then scales to five
+conflict families and nine languages. Where
+\citet{buyl2024llm} evaluate nineteen LLMs across six UN
+languages but with the four major Western and Chinese provider
+ecosystems represented as the comparison axis, this thesis
+sweeps fifteen providers across seven regulatory regimes --- the
+United States, China (CAC-regulated), Canada (Cohere multilingual),
+Israel, Saudi Arabia, Taiwan, and Russia (state-aligned) --- on the
+same prompt bank. Fourteen of the fifteen return analysable prose;
+the Russian provider refuses uniformly and is analysed separately as
+evidence in its own right. Where \citet{urman2025silence}
+document \emph{that} refusal patterns inherit from Russian
+state templates, this thesis recovers the embedding-space
+signature of those refusals through unsupervised clustering,
+closing the explicit creator-provider gap left open by that
+paper. Where \citet{smirnov2026language} establishes the
+pattern qualitatively on one document, this thesis quantifies
+the same shift geometrically across thousands of responses and
+shows when the literal pattern survives, when it dissolves,
+and when an alternative metric --- a paired-edit stance-axis
+projection --- recovers a stronger signal than anchor cosine.
+
+Three methodological commitments shape what follows. First,
+English is treated as a control language rather than as one of
+$N$ symmetric options. Frontier LLM training corpora are
+English-dominant; the asymmetry between an English baseline
+and non-English target languages is itself a measurement, and
+collapsing it loses information. Second, the analysis is built
+around \emph{anchors} --- the multilingual Wikipedia article
+on each event in each language --- so that cross-lingual
+divergence is measured in a frame that does not require
+native-speaker raters. The anchor frame inherits its
+central assumption from \citet{oeberst2020wikipedia}:
+Wikipedia language editions encode each side's framing of a
+contested event. When the anchor pre-exists in three
+languages the response embedding can be projected against all
+three; when the event is fictional the anchor frame collapses
+and a complementary metric is required. Both regimes are
+treated. Third, the design is depth-first. Every instrument in
+the thesis --- anchor cosine, language-axis debiasing,
+unsupervised structure recovery, the stance axis, the judge
+protocols --- is built and validated on a single case, the 2014
+Russo-Ukrainian crisis, where the anchor corpus is richest, the
+precedent literature is concentrated, and the prompt
+translations receive the closest scrutiny. The other conflict
+families and the sixteen-language event-ladder corpus then
+serve a different role: they test whether the validated
+instruments generalise, at lower sampling depth and with
+machine-translated prompts. The thesis is about multilingual
+LLMs in general; the Russo-Ukrainian case is its evidentiary
+spine, and the asymmetry between the two is a design choice
+rather than an accident of emphasis. The choice is vindicated
+in \S\ref{sec:exp_021}: the home case turns out to be atypical
+on the stance instrument --- a fact only the breadth arm could
+have revealed.
+
+\section{Research questions}\label{sec:rqs}
+
+This thesis investigates four coupled questions.
+
+\begin{description}
+  \item[\textbf{RQ1 --- Ingroup pull.}] When prompted in
+    language $\ell$ about a contested event $q$, does an LLM's
+    response embed closer to the $\ell$-language Wikipedia
+    article on $q$ than to the other-language articles, after
+    controlling for the baseline same-language similarity
+    inherent in shared vocabulary?
+  \item[\textbf{RQ2 --- Generality across providers and
+    conflicts.}] Does any such ingroup pull survive across
+    providers from distinct training-data ecosystems
+    (US-trained, China CAC-regulated, Russian state-aligned,
+    Cohere multilingual, Saudi state-research, Taiwan
+    state-counter, Israeli) and across contested-event
+    families beyond the Russo-Ukrainian case (Israel--Palestine,
+    India--Pakistan, Taiwan strait, Falklands)? For the Russian
+    provider, whose responses are withheld, the question becomes
+    what its refusal behaviour reveals.
+  \item[\textbf{RQ3 --- Methodology robustness.}] Is the
+    finding an artefact of the OpenAI embedding model used as
+    the primary instrument, or does it survive under independent
+    embedding spaces (Alibaba, Google Gemini, Yandex)? And is
+    the cross-lingual cluster fusion that the embeddings
+    recover attributable to subword-tokenizer overlap rather
+    than to narrative content?
+  \item[\textbf{RQ4 --- What cosine misses.}] What
+    language-conditional framing patterns are visible in an
+    alternative metric --- a paired-edit stance-axis projection
+    --- that anchor cosine flattens? And how does the bias
+    generalise when no anchor exists at all, on an imaginary
+    contested event for which the model has no training-data
+    recall?
+\end{description}
+
+\section{Contributions}\label{sec:contributions}
+
+\begin{enumerate}
+  \item A reproducible pipeline for measuring linguistic
+    ingroup bias in LLM responses against multilingual
+    Wikipedia anchors, including a language-axis projection
+    debiasing method that separates lexical from framing
+    contributions (Chapter~\ref{ch:method}).
+  \item A 15-provider $\times$ 9-question $\times$
+    3-language sweep on the 2014 Russo-Ukrainian crisis case
+    study, spanning seven regulatory regimes; fourteen providers
+    across six regimes return analysable prose
+    (\S\ref{sec:exp_014}), followed by a five-conflict
+    scale-up to Israel--Palestine, India--Pakistan, the Taiwan
+    strait, and the Falklands (\S\ref{sec:exp_006}). The
+    cosine ingroup-pull pattern generalises across all five
+    conflict families, with raw EN ingroup-pull magnitudes
+    ranging from ${+}0.32$ (India--Pakistan) down to ${+}0.05$
+    (Falklands) --- a raw ordering that anchor-geometry ceilings
+    compress substantially (\S\ref{sec:exp_006}). The Falklands near-null functions as a
+    falsification anchor for the pipeline --- the metric does not
+    return a strong signal everywhere it is pointed --- and the
+    event-ladder study of \S\ref{sec:exp_007} rules out event age
+    as its explanation, since far older events return far stronger
+    signals.
+  \item A four-embedder cross-corpus robustness check showing
+    that the \emph{sign} of ingroup pull is method-robust but
+    the \emph{magnitude ordering} (EN ${\gg}$ RU ${>}$ UK) is
+    OpenAI-specific (\S\ref{sec:exp_015}). The Russian-trained
+    Yandex embedder gives Ukrainian responses \emph{more}
+    ingroup pull than Russian responses, falsifying the simple
+    ``Russian-trained embedder will inflate Russian pull''
+    hypothesis.
+  \item A subword-tokenizer-overlap control ruling out shared
+    Cyrillic vocabulary as the dominant explanation for the
+    cross-lingual cluster fusion that unsupervised structure
+    on the response embeddings recovers
+    (\S\ref{sec:exp_017}). All three inspectable embedder
+    tokenizers fall below the BLOOM Russian--Ukrainian overlap
+    reference of $0.76$ used by \citet{qi2023crosslingual}.
+  \item A paired-edit stance-axis projection metric that
+    triangulates with anchor cosine and reveals, across the
+    same five conflicts, that the Russian--Ukrainian pair shows
+    the \emph{smallest} per-language framing gap on this
+    measure --- demoting the flagship pair from mid-ranking on
+    cosine to the floor. India--Pakistan
+    tops the stance ranking with a mean cross-language gap of
+    ${+}0.131$; Russian--Ukrainian sits at ${+}0.033$. The
+    gap exists in every conflict but its magnitude is
+    conflict-specific in a way cosine flattens
+    (\S\ref{sec:exp_021}).
+  \item Three categorical findings beyond cosine: state-aligned
+    refusal in a 270/270 sweep of YandexGPT
+    (\S\ref{sec:exp_011}); language-conditional topic
+    avoidance in a US-trained diffusion LLM (Mercury-2's
+    Crimea coverage drops from a Ukrainian median of $2$ to a
+    Russian median of $0$ on the same prompt under a
+    pre-specified four-level rubric, \S\ref{sec:exp_003});
+    and stylistic-fingerprint differences between frontier
+    and 7B local models that are invisible to anchor cosine
+    but recoverable from the unsupervised embedding structure
+    (\S\ref{sec:exp_016}).
+  \item An event-ladder study testing whether the recency gradient
+    documented in the human Wikipedia data transfers to model
+    responses (\S\ref{sec:exp_007}). Six contested disputes are
+    each given a ladder of focal events spanning as much of their
+    documented history as Wikipedia supports, and two settled
+    separations provide single-event baselines --- 31 events from
+    988 to 2023, in sixteen languages, with 31{,}457 completions
+    scored on the refusal arm. Ingroup pull is positive on every
+    event tested and both settled baselines sit at the floor of the
+    contested range in raw pull (below it under length-matched
+    anchors, narrowly at the 2022 cell; the floor is partly an
+    anchor-geometry effect, \S\ref{sec:exp_007}), but the recency
+    gradient does \emph{not}
+    transfer: within-family correlations between event date and
+    pull split three against three. Bias is inherited in direction,
+    not in temporal structure. Four measurement arms --- anchor
+    cosine, stance projection, refusal rate, and an LLM judge ---
+    agree on direction and diverge on how cleanly they
+    separate contested disputes from settled ones.
+  \item A two-shape characterisation of bias on imaginary
+    contested events. Free-form prose carries content
+    divergence without direction; direct attribution carries
+    directional commitment without content divergence. On a
+    fictional 2024 Russo-Ukrainian bridge incident with
+    invented place names absent from training data, the
+    free-form news-report question carries the highest
+    cross-lingual divergence in the bank with zero net stance
+    direction, while the attribution questions carry the
+    lowest divergence but the strongest directional lean
+    (Ukrainian-ward under Ukrainian prompts); one 7B provider
+    shows a 1.07-point swing in LLM-as-judge stance score
+    between its Russian-prompt and Ukrainian-prompt means on
+    the same fictional event (\S\ref{sec:exp_004}).
+\end{enumerate}
+
+\section{Thesis structure}\label{sec:structure}
+
+Chapter~\ref{ch:background} reviews the Wikipedia ingroup-bias
+literature, the embedding-space bias measurement methodology
+from \citet{bolukbasi2016man} through
+\citet{caliskan2017semantics} and \citet{may2019}, the recent
+multilingual LLM bias work, and the four published precedents
+that position this thesis as a rigorous extension rather than
+a fresh discovery. Chapter~\ref{ch:method} describes the
+pipeline in detail: prompt design, anchor selection, embedding,
+language-axis debiasing, the unsupervised cluster-structure
+analysis, and the paired-edit stance-axis projection metric.
+Chapter~\ref{ch:experiments} presents the experiments as an
+argument rather than in the order they ran: the core finding
+first, then three independent attempts to kill it as a
+measurement artefact, then the categorical phenomena and
+alternative metrics that recover what cosine averages away, then
+its generalisation across conflict families, and finally the
+event-ladder study that varies time within a conflict. Chapter~\ref{ch:discussion} interprets the
+findings, resolves the four-way disagreement between the
+measurement instruments, lists threats to validity, and answers
+the research questions. Reproduction
+recipes, the full prompt bank, the provider matrix, and the cost
+summary are in Appendix~\ref{ch:appendix}; the paired-edit
+lexicons are frozen in the project repository
+(\S\ref{sec:stance_axis}).

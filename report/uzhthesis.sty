@@ -1,0 +1,212 @@
+%==============================================================================
+% UZHTHESIS -- (uzhthesis.sty) Style file
+% Adapted from rpg.sty for the BabelBias master thesis (Social Computing
+% Group, UZH Department of Informatics, 2026).
+%
+% Lineage:
+%   ethidsc.sty   (Eric A. Mueller, ETH Zurich, 2004)
+%   rpg.sty       (Christian Forster, RPG Lab, 2013)
+%   uzhthesis.sty (Samuel Wallace, Social Computing Group, 2026)
+%
+% Changes vs. rpg.sty:
+%   - Default options switched to {english, mt} (master thesis, English)
+%   - inputenc utf8 (was latin1) — required for Cyrillic in BabelBias
+%   - Dropped pstricks, psfrag, mcode (incompatible with pdflatex / unused)
+%   - Title page: lab name → "Social Computing Group"; right-hand logo →
+%     UZH IfI Department of Informatics ("logo_inf")
+%   - Info page: same logo swap
+%==============================================================================
+\def\Presentation@Version{1.2}
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{uzhthesis}[2026/05/06, v. \Presentation@Version]
+\typeout{providing new style definitions and commands ---}
+\typeout{BabelBias thesis style — derived from rpg.sty / ethidsc.sty}
+
+\newif\ifingerman
+\DeclareOption{german}{\global\ingermantrue}
+\DeclareOption{english}{\global\ingermanfalse}
+
+\DeclareOption{mt}{\gdef\@type{\ifingerman Masterarbeit\else Master Thesis\fi}}
+\DeclareOption{bt}{\gdef\@type{\ifingerman Bachelorarbeit\else Bachelor Thesis\fi}}
+\DeclareOption{st}{\gdef\@type{\ifingerman Semesterarbeit\else Semester Thesis\fi}}
+
+\ExecuteOptions{english,mt}
+\ProcessOptions
+
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1,T2A]{fontenc}              % T2A enables Cyrillic glyphs
+\RequirePackage[main=english,russian,ukrainian]{babel}
+\RequirePackage{amsmath,amssymb,amsthm}
+\RequirePackage{graphicx}
+\RequirePackage{float}
+\RequirePackage{fancyhdr}
+\RequirePackage{hyperref}
+\RequirePackage{multirow}
+\RequirePackage{rotating}
+\RequirePackage{units}
+\RequirePackage{booktabs}
+\RequirePackage{parskip}
+\RequirePackage{xcolor}
+\RequirePackage{pgfplots}                     % required for tikz figures
+
+\ifingerman
+\RequirePackage{ae}
+\fi
+
+\newcommand{\@supervision}{}
+\newcommand{\supervision}[1]{\gdef\@supervision{#1}}
+
+\newcommand{\@studentA}{}
+\newcommand{\studentA}[1]{\gdef\@studentA{#1}}
+
+\newif\ifstudentB
+\newcommand{\@studentB}{}
+\newcommand{\studentB}[1]{\gdef\@studentB{#1}\studentBtrue}
+
+\newcommand{\@ethidA}{}
+\newcommand{\ethidA}[1]{\gdef\@ethidA{#1}}
+
+\newcommand{\@ethidB}{}
+\newcommand{\ethidB}[1]{\gdef\@ethidB{#1}}
+
+\newcommand{\@semesterA}{}
+\newcommand{\semesterA}[1]{\gdef\@semesterA{#1}}
+
+\newcommand{\@semesterB}{}
+\newcommand{\semesterB}[1]{\gdef\@semesterB{#1}}
+
+\newcommand{\@emailA}{}
+\newcommand{\emailA}[1]{\gdef\@emailA{#1}}
+
+\newcommand{\@emailB}{}
+\newcommand{\emailB}[1]{\gdef\@emailB{#1}}
+
+\newcommand{\@identification}{}
+\newcommand{\identification}[1]{\gdef\@identification{#1}}
+
+\newcommand{\@declaration}{}
+\newcommand{\declaration}{\gdef\@declaration{
+
+{\bf Statement regarding plagiarism: \\[1ex]}
+\ifstudentB
+By signing this statement, we affirm that we have read the information notice on plagiarism, independently produced this paper, and adhered to the general practice of source citation in this subject-area.\\[3ex]
+\else
+By signing this statement, I affirm that I have read the information notice on plagiarism,
+independently produced this paper, and adhered to the general practice of source
+citation in this subject-area.\\[3ex]
+\fi
+Information notice on plagiarism:\\[1.5ex]
+\url{https://www.ius.uzh.ch/dam/jcr:00000000-100f-6f7c-ffff-ffff869554ef/LK_Plagiarism.pdf}
+\\[6ex]
+% Signature: drop an image at logos/signature.png and it is placed on
+% the signature line; while the file is absent the plain rule renders.
+Zurich, \the\day. \the\month. \the\year: \IfFileExists{logos/signature.png}%
+  {\raisebox{0.5mm}[0pt][0pt]{\makebox[0pt][l]{\hspace{2em}%
+     \includegraphics[height=1.6cm]{logos/signature}}}\hrulefill}%
+  {\hrulefill}
+}}
+
+
+
+% Definition of title page______________________________________________________
+\renewcommand{\maketitle}{
+
+\pagestyle{empty}
+
+\begin{center}
+\hspace{0.02\textwidth}
+\parbox[c][\textheight][t]{0.97\textwidth}{
+\begin{center}
+
+\vspace*{-2cm}
+\noindent\makebox[\linewidth][s]{%
+\hspace*{-2.5cm}%
+\includegraphics[height=1.9cm]{logos/uzh_logo}%
+\hfill
+\raisebox{0.1cm}{\includegraphics[height=1.7cm]{logos/scg_logo}}%
+\hspace*{-1.5cm}}
+\vspace*{1.5cm}
+
+\vspace*{2.5cm}
+
+
+{\large \@studentA\if\@studentB\else \ \& \@studentB\fi}
+\vspace{1.5cm}
+
+{\Huge \bf \@title \par}
+\vspace{2.5cm}
+
+{\large \bf \@type}\\[3ex]
+ Social Computing Group\\
+ Department of Informatics\\
+ University of Zurich\\
+\vspace{3.5cm}
+
+{\bf Supervision} \\[1.5ex]
+\@supervision
+
+\vfill
+\@date
+
+% Report identification number
+\begin{flushleft}
+\hspace*{-1.5cm}
+\vspace{-1.5cm}
+\texttt{\@identification}
+\end{flushleft}
+
+\end{center}
+}
+\end{center}
+\cleardoublepage
+}
+
+
+
+% Definition of info page (last page)___________________________________________
+\newcommand{\infopage}{
+\AtEndDocument{
+
+\pagestyle{empty}
+\cleardoublepage
+\setlength{\oddsidemargin}{1.5cm}
+\setlength{\parindent}{0em}
+
+\vspace*{-2cm}
+\includegraphics[height=1.9cm]{logos/uzh_logo}\\
+\vspace{0.5cm}
+
+{\bf Title of work: \\[1ex]}
+{\LARGE \@title \\[1ex] \par}
+
+{\bf Thesis type and date: \\[1ex]}
+\@type, \@date\\[2.5ex]
+{\bf Supervision: \\[1ex]}
+\@supervision
+
+\vspace{1cm}
+
+{\bf \ifstudentB Students:\else Student: \fi}
+
+\begin{tabbing}
+\hspace*{3cm}  \= \kill
+Name: \> \@studentA \\
+E-mail: \> \@emailA \\
+Legi-Nr.: \> \@ethidA
+\end{tabbing}
+
+\if\@studentB \else
+\begin{tabbing}
+\hspace*{3cm}  \= \kill
+Name: \> \@studentB \\
+E-mail: \> \@emailB \\
+Legi-Nr.: \> \@ethidB
+\end{tabbing}
+\fi
+\vspace{1cm}
+
+\if\@declaration \else \@declaration \fi
+
+\normalsize
+}
+}

@@ -1,0 +1,5 @@
+embedder,label,n_embeddings,dims,n_layers,chosen_layer,n_clusters_at_chosen,lang_purity,qid_purity,model_purity
+openai_te3s,OpenAI text-embedding-3-small  [US],3779,1536,3,1,29,0.9187956650512763,0.915657594558156,0.16520461536443562
+alibaba_v3,Alibaba text-embedding-v3  [CN],3779,1024,3,1,33,0.8465720891811241,0.9608978378385052,0.1912804908972558
+gemini_001,Google gemini-embedding-001  [US],3779,3072,3,2,19,0.7446685680619244,0.9568694672946584,0.1277187895225047
+yandex_doc,Yandex text-search-doc  [RU],3779,256,3,1,35,0.9675488043080055,0.9225041702839042,0.18990684832644356

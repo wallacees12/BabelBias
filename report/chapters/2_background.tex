@@ -1,0 +1,492 @@
+\chapter{Background and related work}\label{ch:background}
+
+\section{Linguistic ingroup bias on Wikipedia}\label{sec:wikipedia_bias}
+
+\citet{oeberst2020wikipedia} establish the load-bearing prior for this
+thesis. Across thirty-five intergroup conflicts and three studies, they
+show that Wikipedia articles in the language of each conflicting party
+portray the in-group as preferred, more powerful, less immoral, and less
+responsible, using a four-dimensional content-coding rubric applied to
+article lead sections. The strength of the bias is predicted by two
+structural variables: the recency of the conflict, and the proportion of
+in-group editors among the article's top contributors. A null result on
+translation, rater nationality, and scale-order licenses subsequent
+embedding-based work that does not require native-speaker raters.
+Because the biased unit is the human-authored article text --- the
+same corpus that contemporary multilingual LLMs consume in
+pre-training --- their result fixes the source-side prior for this
+thesis: a model that reproduces the distribution of its training text
+on contested events should reproduce the per-language framing
+divergence along with it. Whether it does, and in what form, is the
+question the following chapters operationalise;
+\S\ref{sec:mechanisms} returns to this as the source-side mechanism.
+
+\citet{samoilenko2017timelines} document a related effect at corpus
+scale. They build a language-independent pipeline that extracts every
+four-digit-year mention from ``History of [country]'' articles across
+thirty Wikipedia editions for all 193 UN member states. Using a
+Dirichlet--multinomial null model, Jensen--Shannon divergence, and
+hierarchical clustering, they find that national histories cluster by
+geopolitical bloc, that recency is over-represented in every edition (a
+uniform ``presentism''), and that the post-Soviet bloc surfaces as a
+coherent cluster of editions sharing temporal focal points. The
+(country $\times$ language-edition) comparison and clustering frame is
+methodologically analogous to the (question $\times$ language) anchor
+matrices used in this thesis. Their explicit non-goal --- language-specific
+narrative and sentiment analysis --- is the gap that the embedding-based
+contested-event method fills here.
+
+\citet{yasseri2026grokipedia} extend the cross-corpus comparison from
+human-edited Wikipedia to LLM-generated encyclopedic text. Comparing
+17{,}790 matched Grokipedia--Wikipedia pairs from the most-edited English
+Wikipedia titles, they find that Grokipedia articles are roughly 22\%
+longer with 43\% fewer references per thousand words, with a distinctly
+bimodal similarity distribution: roughly 34\% of pairs are aligned and
+66\% diverge. The divergent subset shows a systematic rightward shift
+in the political bias of cited news media, concentrated in articles on
+history, religion, and the arts. They name the resulting phenomenon the
+\emph{epistemic opacity paradox}: Grokipedia \emph{appears} neutral
+because it lacks visible disagreement, but its bias is hidden in opaque
+model behaviour rather than being visible and contestable as in
+Wikipedia's edit history. The bimodal pattern --- bias concentrated in
+narrative-laden content --- anticipates the finding in
+Chapter~\ref{ch:experiments} that cross-lingual divergence in LLM
+responses is content-dependent rather than uniform across questions.
+
+A complementary structural lens comes from
+\citet{yu2025demographic}, who decompose the coverage of over one
+million biographies across the twelve largest editions (2010--2020)
+into \emph{breadth}, \emph{depth}, and \emph{global consensus}, and
+isolate editorial-system effects from upstream fame asymmetry with
+an audit on Olympic medal winners. The decomposition is portable to
+characterising the multilingual anchor corpus, with the caveat that
+their cohort does not include Ukrainian.
+
+Earlier work on cross-lingual Wikipedia divergence sets the stage.
+\citet{hecht2010tower} document the ``tower of Babel'' effect: language
+editions of Wikipedia overlap less than naive intuition suggests, with
+significant article-level and content-level differences across editions
+even on shared topics. \citet{massa2013manypedia} introduce
+\emph{Manypedia}, the first systematic comparison of language-specific
+points of view on the same topic across Wikipedia communities. Both
+papers establish that \emph{which language one reads Wikipedia in}
+materially shapes the narrative one receives --- a precondition for any
+claim about language-conditional LLM behaviour.
+
+The information-ecosystem framing is rounded out by
+\citet{pfister2011networked} on participatory expertise and
+\citet{urman2022shadows} on the linguistic siloing of the
+multilingual far-right web on Telegram: contemporary online
+information ecosystems are linguistically partitioned by design.
+Neither offers methods that this thesis inherits.
+
+\section{Embedding-space bias measurement}\label{sec:embedding_bias}
+
+The use of cosine geometry to detect bias in dense vector representations
+begins with \citet{bolukbasi2016man}, who identify a single ``gender
+direction'' in word2vec via principal-components analysis on paired
+\emph{she--he} and \emph{woman--man} difference vectors and demonstrate
+that stereotyped analogies (e.g.\ \emph{programmer $\leftrightarrow$
+man, homemaker $\leftrightarrow$ woman}) drop from 19\% to 6\% under
+their neutralize-and-equalize debiasing procedure with no loss on
+standard analogy benchmarks. \citet{caliskan2017semantics} formalise the
+cosine-association methodology as the Word Embedding Association Test
+(WEAT) --- measuring the differential association of two target word
+sets with two attribute word sets via cosine similarity, with a
+permutation-test null --- and show that pre-trained GloVe embeddings on
+Common Crawl encode every IAT-documented human bias they tested, from
+flowers/insects ($d = 1.50$) to gender--career ($d = 1.81$) and
+Bertrand--Mullainathan r\'esum\'e-name discrimination ($d = 1.50$,
+$p < 10^{-4}$). Their WEFAT extension predicts real-world quantities:
+the gender composition of fifty occupations correlates with embedding
+geometry at $\rho = 0.90$ against 2015 BLS data, with effects robust
+across GloVe and word2vec at $\rho = 0.88$.
+
+{\sloppy
+\citet{may2019} extend WEAT from word level to sentence level (SEAT),
+demonstrating that contextualised sentence encoders reproduce many of
+the same effects when target and attribute words are embedded in
+templated sentences. \citet{kurita2019measuring} push further into the
+contextualised regime, proposing a template-based log-probability bias
+score for masked language models: insert a target word and an attribute
+word into a templated sentence, query the masked-LM head for both, and
+compute $\log(p_\text{target} / p_\text{prior})$ where the prior is the
+model's probability of the target with the attribute also masked.
+Critically, they show that cosine-based WEAT applied to BERT
+\emph{fails} to detect any of the five tested biases at $p < 0.01$,
+while their log-probability score recovers statistically significant
+bias on four of five categories and aligns better with human IAT
+measurements. The lineage is now clear: word-level cosine
+\citep{bolukbasi2016man, caliskan2017semantics} $\rightarrow$
+sentence-level cosine \citep{may2019} $\rightarrow$ masked-token log
+probability in templated sentences \citep{kurita2019measuring}.\par}
+
+The methodology used in this thesis is the natural next step along the
+same lineage: measure bias at the \emph{response} level --- full
+multi-sentence LLM outputs --- by computing cosine similarity to
+language-anchored Wikipedia lead sections embedded in the same space.
+The shift from stereotype-direction measurement (the WEAT family) to
+\emph{ingroup pull} measurement (the cosine of an LLM response to a
+language-specific anchor) is conceptually a contextual-WEAT effect with
+response-cells as targets and language-anchored Wikipedia leads as
+attributes; Caliskan's permutation-test null transfers directly. The
+bias-subspace projection idea introduced by \citet{bolukbasi2016man}
+also transfers: it motivates a ``Russian-versus-English framing axis''
+constructed via PCA on paired EN/RU/UK Wikipedia-anchor difference
+vectors, projection onto which provides a one-dimensional summary
+complementary to the cosine-to-anchors instrument
+(\S\ref{sec:debiasing}).
+
+\citet{azizov2024safari} provide an independent validation of Wikipedia
+descriptions as effective cross-lingual anchors for political-bias and
+factuality detection across ten or more languages. Their finding that
+nationality bias is prevalent when local Wikipedia context is missing
+motivates the careful per-language anchor construction used in
+Chapter~\ref{ch:method}.
+
+\section{Multilingual LLMs as knowledge curators}\label{sec:llm_curators}
+
+The empirical literature on bias in conversational LLMs begins with
+\citet{hartmann2023chatgpt}, who prompt ChatGPT with 630 political
+statements drawn from Germany's Wahl-O-Mat, the Netherlands' StemWijzer,
+and the political-compass test, scoring its forced
+agree/neutral/disagree replies through the voter-advice-application
+backends and finding a consistent pro-environmental, left-libertarian
+orientation across all three pre-registered studies, robust to five
+prompt manipulations including English--Spanish translation.
+\citet{rozado2024} extends the analysis across twenty-four LLMs and
+reports that the same left-of-centre orientation is shared across nearly
+all conversational models tested. Notably, Rozado reports that
+\emph{base} models cluster near the political centre indistinguishably
+from a random-answer baseline, while conversational variants of the
+same models exhibit the left-of-centre tilt, suggesting that the
+political orientation emerges via post-pretraining alignment
+(SFT/RLHF) rather than being induced by the pretraining corpus.
+Rozado himself flags this as ``suggestive but ultimately inconclusive''
+because the high invalid-response rate of base models (mean 42\%) and
+moderate human--automated stance-agreement on those responses
+($\kappa = 0.41$) leave the base-vs-conversational comparison
+underpowered. \citet{dang2024rlhf}
+supply the missing causal mechanism: preference optimization (DPO/RLOO)
+applied with \emph{English-only} preference data demonstrably improves
+model behaviour in twenty-two other languages on Aya-23-8B, showing
+that RLHF signal leaks across the language barrier. Together, Rozado
+and Dang predict that an English-data-aligned model will surface its
+alignment-data tilt in Russian and Ukrainian outputs too --- a
+mechanistic candidate for the EN-ingroup pull reported in
+Chapter~\ref{ch:experiments}, complementary to \citet{zhao2025makieval}'s
+English Activation effect. The methodology of \citet{hartmann2023chatgpt}
+and \citet{rozado2024} --- forced-choice voter-advice questionnaires
+projected onto a low-dimensional political space --- is sufficient for
+the issue-position question but not for the contested-event question
+pursued here.
+
+\citet{durmus2023globalopinionqa} provide the precedent that motivates
+this thesis's design directly. Their \emph{GlobalOpinionQA} dataset
+combines 2{,}556 questions from the Pew Global Attitudes Survey and the
+World Values Survey, and their per-country alignment metric is one minus
+the Jensen--Shannon divergence between the model's option distribution
+and the empirical option distribution from each country's respondents.
+Across three experimental conditions --- default prompting,
+cross-national prompting (``how would someone from $c$ answer''), and
+\emph{linguistic prompting} (translating the question into Russian,
+Chinese, or Turkish) --- they find three results. The model defaults to
+opinions most similar to those of US, Canadian, Australian, and Western
+European respondents; cross-national prompting shifts responses toward
+the named country but often via shallow stereotype rather than nuanced
+understanding; and crucially, \emph{linguistic prompting does not make
+responses more similar to the speakers of the target language}. This
+last result is the published precedent for the central empirical claim
+of this thesis --- that prompting an LLM in Russian or Ukrainian does
+not reliably elicit a Russian or Ukrainian framing of contested events
+--- and it is generalised here from survey opinions to historical-event
+narrative.
+
+\citet{smirnov2026language} provides the closest published parallel
+to the central experimental design of this thesis. On a single
+Ukrainian civil-society document, Smirnov shows that semantically
+equivalent prompts in Russian and Ukrainian elicit systematically
+different ideological framings from a single LLM: the
+Russian-language output reproduces vocabulary characteristic of
+Russian state discourse (civil-society actors framed as
+``illegitimate elites undermining democratic mandates''), while the
+Ukrainian-language output adopts vocabulary characteristic of
+Western liberal-democratic political science (the same actors framed
+as ``legitimate stakeholders''). The model and source document are
+held fixed; the prompt language alone flips the framing.
+Smirnov's design is qualitative-discourse-analytic, single-document,
+single-model (likely), and lacks an English control or an
+imaginary-conflict probe; the present thesis is best read as the
+embedding-quantified, English-controlled scaling of Smirnov's
+existence proof across many events and providers.
+
+\citet{buyl2024llm} provide the closest published comparable for the
+cross-provider design used here. They prompt nineteen LLMs in six UN
+languages to morally rate roughly four thousand Pantheon-listed political
+figures via a two-stage protocol (open description, then forced
+five-point Likert), aggregating responses into 61-dimensional
+Manifesto-tag vectors and projecting to ideological axes via PCA. Their
+headline finding is that the ideological position of an LLM depends
+jointly on the language of the prompt and on the geopolitical region of
+the model's creator, with significant \emph{within-bloc} spread (Gemini
+progressive vs.\ Grok sovereigntist; Qwen international vs.\ ERNIE
+domestic). They argue normatively, drawing on Foucault, Gramsci, and
+Mouffe, that ``neutrality'' is itself ideologically defined, and that
+regulatory policy should target ideological transparency and prevent
+monoculture rather than enforce a single neutral position. The
+methodological blind-spot they report --- silently filtering ``invalid''
+responses --- is precisely the refusal signal that this thesis treats
+as primary evidence (Chapter~\ref{ch:experiments}).
+\citet{pacheco2025echoes} narrows the cross-provider comparison to
+ChatGPT versus DeepSeek and finds that ``sovereign models'' reflect the
+national power structures and narratives of their origin and narrow the
+range of political thought in their respective regions, consistent with
+the cross-provider divergence reported in
+Chapter~\ref{ch:experiments}.
+
+The cultural-bias literature is adjacent. \citet{ramezani2023moral}
+probe English pre-trained language models with English-language
+prompts about cross-cultural moral norms and document substantial
+variation in LLMs' representations: the inferred norms align
+substantially better with Western or Rich-West cultures than with
+non-Western or non-rich cultures, even though the probe is held in
+a single language throughout.
+\citet{naous2024beer} introduce CAMeL, a probe for cultural bias in LLMs
+in Arabic versus English, and report that even models with strong
+Arabic capabilities default to Western-cultural framings on
+culturally-contested items. \citet{atari2023humans} make the WEIRD
+framing explicit: most LLM evaluations use Western, Educated,
+Industrialised, Rich, Democratic populations as their reference,
+leaving the cultural representation of the rest of the world
+under-specified. \citet{zhao2025makieval} introduce MAKIEval, a
+Wikidata-based framework for cultural-awareness evaluation, and report
+an \emph{English Activation} effect --- English prompts often activate
+a model's cultural knowledge better than the native language of that
+culture. This is a direct mechanistic candidate for the EN-ingroup pull
+reported in Chapter~\ref{ch:experiments}: prompting in English may
+simply route through a richer, more densely cross-referenced
+cultural-knowledge representation.
+
+The cross-lingual factual-consistency literature provides the most
+serious methodological challenge. \citet{qi2023crosslingual} introduce
+\emph{RankC}, a softmax-weighted MAP-at-$K$ metric that quantifies
+cross-lingual factual consistency \emph{independently of probing
+accuracy}, and apply it to the \emph{BMLAMA} benchmark across XLM-R,
+mT5, and the BLOOM series. Three findings here bear directly on this
+thesis. First, average consistency across models is low (25--32\%) and
+barely improves with scale (+2 percentage points from 560M to 3B).
+Second, \emph{subword-vocabulary overlap} is the strongest predictor of
+cross-lingual factual consistency --- far more than genetic, syntactic,
+or geographic typology --- suggesting that factual knowledge percolates
+between languages shallowly via shared tokens rather than via
+language-agnostic representations. Third, in the BLOOM tokenizer the
+Russian--Ukrainian pair has subword overlap of 0.76 and genetic
+similarity of 0.8, placing it firmly among the high-CLC pairs. The
+implication is that the finding in Chapter~\ref{ch:experiments} that
+the Russian and Ukrainian Wikipedia anchors and both languages'
+responses fuse into a single joint cluster is \emph{predicted} by
+tokenizer overlap alone, and
+the discussion in Chapter~\ref{ch:discussion} must explicitly
+disentangle tokenizer leakage from genuine narrative fusion. The
+proposed tokenizer-overlap control is reported in
+Chapter~\ref{ch:experiments}: tokenizer leakage is ruled out as
+the dominant explanation for the Ukrainian--Russian cluster fusion.
+
+Two follow-up papers refine the tokenizer story specifically for the
+Ukrainian side. \citet{maksymenko2025tokenization} measure tokenizer
+fertility on Ukrainian across Llama, Gemma, Mistral, and the GPT
+family, showing that the large Cyrillic vocabulary in these
+tokenizers is dominated by Russian-frequent subwords that fail to
+encode Ukrainian efficiently --- Gemma has more Cyrillic tokens than
+Llama 3.1 yet produces \emph{worse} Ukrainian fertility because those
+tokens are Russian-shaped. \citet{kiulian2024bilingual} report that
+GPT-4 spends roughly three times more tokens on Ukrainian than on
+English, and that this fragmentation mechanically drives
+code-switching in vanilla Mistral on Ukrainian (code-switch rate
+0.515), which targeted vocabulary expansion fixes (0.001). Neither
+is directly portable (the pipeline is API-bound and cannot retrain
+tokenizers), but together
+with \citet{qi2023crosslingual} they tighten the chapter-five caveat:
+high script-level overlap between Russian and Ukrainian masks
+sub-token divergence that may itself contribute to the embedding-space
+fusion pattern even after the tokenizer-overlap control rules out
+the simple overlap-leakage story.
+
+{\sloppy
+\citet{urman2025silence} provide the closest published comparable for
+refusal-as-evidence. Auditing ChatGPT (GPT-3.5/4/4o), Google
+Bard/Gemini, and Bing Chat on Russia-related political prompts in
+Russian, Ukrainian, and English, they find that Bard refuses 90\% of
+Putin-related queries in Russian versus 19\% in English --- a refusal
+pattern that closely mirrors a leaked Yandex/Roskomnadzor block list.
+The methodological recipe --- manual two-annotator coding with Cohen's
+$\kappa$ of 0.86--0.93, Fisher's exact tests with Benjamini--Hochberg
+correction, and query-set seeding from a Russian state block list ---
+is the gold-standard guardrail-audit recipe and the closest precedent
+for the YandexGPT refusal sweep in Chapter~\ref{ch:experiments}. They
+predict that Western chatbots will inherit Russian-state censorship
+templates via guardrails; this thesis closes their Russian-provider gap
+by showing that the Russian LLM enforces the templates uniformly (270
+of 270 prompts) with an embedding-space signature visible via EVoC
+clustering. The reframing of YandexGPT as the limit case of a
+structural inheritance pattern --- rather than a categorically distinct
+refusal regime --- is left to the discussion in
+Chapter~\ref{ch:discussion}.\par}
+
+\citet{makhortykh2024warriors} provide the answered-but-wrong companion
+to \citet{urman2025silence}'s refusal study. From the same lab,
+auditing Gemini, Bing/Copilot, and Perplexity on twenty-eight Kremlin
+disinformation narratives in a multilingual longitudinal design, they
+find 2024 inaccuracy rates spanning 10\% (Perplexity) to 48\% (Gemini),
+with the critical observation that \emph{Gemini improves only in
+English while deteriorating in low-resource languages including
+Russian and Ukrainian}. Together \citet{urman2025silence} and
+\citet{makhortykh2024warriors} bracket the LLM cross-lingual failure
+modes: refusal on the silence side, narrative reproduction on the
+content side. BabelBias measures both within a single corpus --- the
+270-of-270 YandexGPT refusal sweep on the silence side, and
+the EN-ingroup-pull plus stance-judge results on the content side ---
+across a wider provider matrix than either of the comparables.
+
+{\sloppy
+\citet{li2024borderlines} introduce \emph{BORDERLINES}, a multilingual
+benchmark of 726 multiple-choice questions over 251 disputed territories
+in 49 languages, and use a family of \emph{Concurrence Scores} to
+measure the discrete
+factual flip in a model's claimed controller of a disputed territory
+across query languages. They evaluate GPT-4, GPT-3, BLOOM, and BLOOMZ,
+with GPT-4 case studies on Crimea, Taiwan, and the Golan Heights. Vanilla
+GPT-4 answers ``Russia'' for Crimea in Russian and ``Ukraine'' in
+Ukrainian --- a discrete cross-lingual flip in the \emph{opposite
+direction} from the EN-ingroup pull reported in
+Chapter~\ref{ch:experiments}. The two findings are not
+contradictory: cosine in dense embedding space and discrete answer
+choice in MCQ are orthogonal measurements, and a model can answer
+``Russia'' in Russian while still being closer to the English Wikipedia
+anchor in sentence-embedding space. Reconciling the two --- and
+integrating the additional Ukrainian-ward stance signal reported in
+Chapter~\ref{ch:experiments} --- is a discussion-chapter
+contribution.\par}
+
+The provider ecosystem audited in
+Chapter~\ref{ch:experiments} contains fifteen providers across seven
+regulatory regimes, fourteen of which return analysable prose (the
+full matrix is specified in \S\ref{sec:protocol}). The
+thesis-relevant claim is not
+that these models are similar, but that they share a common epistemic
+role: producing language-conditional summaries of contested historical
+events for non-expert readers. No prior published work tests
+cross-lingual contested-event behaviour across all seven regulatory
+regimes simultaneously.
+
+\section{Position of this thesis}\label{sec:novelty}
+
+The literature reviewed above shows that BabelBias is best understood as
+a rigorous, multi-regulatory-regime extension of four published findings
+--- \citet{durmus2023globalopinionqa}'s Linguistic-Prompting null on
+opinions, \citet{buyl2024llm}'s creator-region ideology mapping on
+political persons, \citet{urman2025silence}'s cross-lingual guardrail
+audit on Western chatbots, and \citet{smirnov2026language}'s
+single-document qualitative existence proof of language-conditioned
+ideological framing --- rather than a fresh discovery of a previously
+unobserved phenomenon. The contribution is the corpus,
+the methodology stack, and the methodological controls that the
+published partial findings did not have. Five distinct contributions
+distinguish the work below.
+
+\begin{enumerate}
+  \item \textbf{Multilingual LLM responses scaled and quantified.} The
+    measurement target is the LLM's free-form natural-language response
+    to a contested-event question, embedded into the same shared
+    semantic space as the per-language Wikipedia lead-section anchors.
+    This shifts the unit of analysis one level downstream of the prior
+    Wikipedia-bias literature \citep{oeberst2020wikipedia,
+    samoilenko2017timelines}, and one level upstream of the
+    forced-choice MCQ used in \citet{li2024borderlines} or the Likert
+    ratings used in \citet{buyl2024llm}. \citet{smirnov2026language}
+    establishes the qualitative existence proof on a single contested
+    document; this thesis scales the same response-level approach to
+    fourteen providers, three languages including English as a control,
+    and an imaginary-conflict falsification probe, with the framing
+    divergence quantified as anchor-cosine distance rather than
+    interpreted via discourse analysis.
+
+  \item \textbf{Provider matrix spanning seven regulatory regimes.} Most
+    LLM-bias work tests three to five frontier US-trained models
+    \citep{hartmann2023chatgpt, rozado2024,
+    durmus2023globalopinionqa}; \citet{buyl2024llm} expands to
+    nineteen models across six UN languages but does not include
+    Ukrainian as a prompt language and excludes TAIDE and ALLaM.
+    \citet{pacheco2025echoes} compares ChatGPT to DeepSeek;
+    \citet{urman2025silence} audits three Western chatbots;
+    \citet{li2024borderlines} tests four models. BabelBias tests
+    fifteen providers from seven regulatory regimes simultaneously
+    --- US frontier, Chinese CAC-regulated, Cohere multilingual
+    (Canadian), Israeli (Jamba), Saudi state-research (ALLaM),
+    Taiwanese state-counter (TAIDE), and Russian state-aligned
+    (YandexGPT) --- on the same EN/RU/UK
+    contested-event corpus. The provider matrix is the primary
+    empirical contribution; no prior published study has the breadth.
+
+  \item \textbf{Methodology-robust by construction.} Findings that
+    rest on a single embedder are pre-emptively challenged with the
+    four-embedder sweep (\S\ref{sec:exp_015}) including the
+    Russian-trained Yandex embedder. The EVoC
+    unsupervised-clustering analysis recovers the (question $\times$
+    language) cell structure across all four embedders, providing
+    convergent validity from a method independent of the anchor
+    construction (though sharing the embedding space, so
+    embedder-level artefacts are common to both).
+    The remaining methodological vulnerability --- the prediction by
+    \citet{qi2023crosslingual} that Russian--Ukrainian subword
+    vocabulary overlap alone could produce the observed
+    UK-clusters-with-RU-anchor finding --- is addressed by the
+    tokenizer-overlap control of Chapter~\ref{ch:experiments}.
+
+  \item \textbf{Refusal as primary evidence with embedding-space
+    signature.} \citet{buyl2024llm} silently filter ``invalid''
+    responses; \citet{durmus2023globalopinionqa} and
+    \citet{hartmann2023chatgpt} force option-choice; only
+    \citet{urman2025silence} treat refusal as a primary signal, and
+    they explicitly leave Russian-creator providers as future work.
+    BabelBias closes that gap (the YandexGPT 270/270 refusal sweep
+    reported in Chapter~\ref{ch:experiments}) and goes further
+    methodologically by characterising
+    the refusal embedding-space signature via EVoC clustering,
+    recovering the structural inheritance pattern that
+    \citet{urman2025silence} predict but cannot verify in their
+    Western-only data.
+
+  \item \textbf{Four-way metric reconciliation.} Four complementary
+    measurements yield four distinct directional signals on the same
+    conflict: continuous anchor-cosine pulls EN-ward; paired-edit
+    stance projection compresses toward zero, placing the
+    Russo-Ukrainian pair at the floor of the conflicts measured; a
+    judged free-form-stance metric on imaginary content tilts
+    UK-ward; and \citet{li2024borderlines}'s discrete MCQ
+    measurement on the same Crimea item flips RU-ward in vanilla
+    GPT-4. Reconciling cosine, stance, judge, and MCQ measurements
+    is itself a discussion-chapter contribution that no single prior
+    method exposes.
+\end{enumerate}
+
+\subsection*{What this thesis does not claim}
+
+This thesis does \emph{not} claim to discover that prompting LLMs in
+Russian or Ukrainian fails to elicit Russian or Ukrainian framing ---
+that is \citet{durmus2023globalopinionqa}'s Linguistic-Prompting
+result, replicated here at the event-narrative level. It does not
+claim to discover that LLM ideology depends on the creator's
+geopolitical region --- that is \citet{buyl2024llm}'s finding,
+replicated here on contested events. It does not claim to discover
+that Western chatbots inherit Russian-state censorship templates
+cross-lingually --- that is \citet{urman2025silence}'s finding,
+extended here to the Russian-creator limit case. It does not claim
+to discover that prompt language alone changes the ideological framing
+of LLM output on contested political content --- that is
+\citet{smirnov2026language}'s qualitative existence proof on a single
+document, scaled here across many events and providers, with an
+English control and an imaginary-conflict falsification. The empirical
+headline numbers in Chapter~\ref{ch:experiments} should be read as
+rigorous, controlled, multi-provider extensions of these published
+findings, not as fresh discoveries.

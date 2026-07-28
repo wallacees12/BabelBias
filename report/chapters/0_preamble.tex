@@ -1,0 +1,121 @@
+%---------------------------------------------------------------------------
+% Table of contents
+
+ \setcounter{tocdepth}{2}
+ \tableofcontents
+ \cleardoublepage
+
+%---------------------------------------------------------------------------
+% Abstract
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Wikipedia articles about intergroup conflicts systematically favour
+the in-group of each language edition's editing community.
+Multilingual large language models are trained on that corpus. This
+thesis asks whether they inherit the divergence: whether the same
+model, asked about the same contested event, returns each language
+community its own version of history.
+
+To answer this at scale, the thesis introduces an embedding-based
+measurement pipeline. Its primary instrument is \emph{ingroup
+pull}: the row-centred cosine between an LLM response and the
+Wikipedia lead section on the same event in the same language,
+computed in a shared vector space. Fifteen providers spanning seven
+regulatory regimes are queried on nine contested Russo-Ukrainian
+questions in English, Russian, and Ukrainian. Fourteen return
+analysable prose; the Russian provider refuses every prompt, and
+the refusal pattern is analysed as evidence in its own right.
+Responses pull toward the own-language anchor, with matrix means of
+$+0.175$ (English), $+0.043$ (Russian), and $+0.026$ (Ukrainian).
+Unsupervised clustering largely recovers the (question $\times$
+language) design with no axis supervision. The direction of the pull is
+robust: it survives four embedding spaces; generalises to
+Israel--Palestine, India--Pakistan, the Taiwan strait, and the
+Falklands; and holds across an event ladder of 31
+historical events spanning a millennium, from the baptism of
+Kievan Rus' to the 2023 Gaza war --- six contested families plus
+two settled-dispute baselines that stay at the floor in raw pull,
+a separation that survives length-matched anchors. Its magnitude
+structure
+is not: the ordering across languages is specific to the OpenAI
+embedder, and the recency gradient documented for human Wikipedia
+editors does not transfer to model responses. For the flagship
+pair, the answer to the opening question is largely \emph{no}:
+rather than each community receiving its own version of history,
+Russian and Ukrainian speakers receive a shared, fused treatment
+whose strongest pull is toward the English corpus; the framing
+divergence that does exist is larger between Hindi and Urdu, or
+Hebrew and Arabic, than between the two languages at war.
+
+Because cosine measures resemblance rather than allegiance, the
+thesis introduces two further instruments. A \emph{paired-edit
+stance axis}, built from agent-flipped sentence pairs and frozen
+before any response is projected, measures which side's framing
+vocabulary a response uses. On this instrument the cross-language
+gap is widest for India--Pakistan and Israel--Palestine and
+smallest for the Russo-Ukrainian pair --- mid-ranking on cosine,
+demoted to the floor of the contested families.
+An anchor-free protocol for \emph{fictional} contested events
+separates content divergence from directional commitment, and finds
+that the two dissociate by question form: free-form prose diverges
+without taking a side, while attribution questions take a side
+without diverging. Together with an LLM judge and a published
+forced-choice result from the literature, four instruments ---
+three run here, one external --- answer four different
+questions about the same conflict. The thesis concludes that ``which
+side is the model biased toward?'' is malformed as a
+single-instrument question, and supplies the four-instrument panel
+in its place.
+
+\cleardoublepage
+
+%---------------------------------------------------------------------------
+% Acknowledgements
+
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+I thank my supervisors, Prof.\ Dr.\ Aleksandra Urman and
+Prof.\ Dr.\ Mykola Makhortykh, for their guidance throughout this
+project, and the Social Computing Group at the University of Zurich
+for hosting the work and for the discussions that shaped its
+direction.
+
+\cleardoublepage
+
+%---------------------------------------------------------------------------
+% Notation
+
+\chapter*{Notation}\label{chap:notation}
+\addcontentsline{toc}{chapter}{Notation}
+
+\section*{Symbols}
+  \begin{tabbing}
+    \hspace*{2.4cm}   \= \kill
+    $\embed{x}$                \> Embedding of text $x$ in $\mathbb{R}^d$ (default $d{=}1{,}536$) \\[0.5ex]
+    $\cossim(\bvec{a},\bvec{b})$ \> Cosine similarity between two embedding vectors \\[0.5ex]
+    $\ingrouppull$              \> Diagonal ingroup pull of a response to the anchor for question $q$ in language $\ell$ \\[0.5ex]
+    $\langaxis$                 \> Estimated language subspace direction(s) (used in debiasing) \\[0.5ex]
+    $\ell$                      \> Prompt / response language (EN/RU/UK for the case study; up to sixteen ladder languages) \\[0.5ex]
+    $q \in \{q_{01}, \ldots, q_{09}\}$ \> Question identifier in the \texttt{ru\_uk\_core} prompt bank \\[0.5ex]
+    $r$                         \> An LLM response text (embedded as $\embed{r_\ell}$) \\[0.5ex]
+  \end{tabbing}
+
+Scalars in lower case ($a$); vectors in lower case bold
+($\bvec{a}$). Cosine similarities are
+reported in $[-1, 1]$; the \emph{row-centred} variant subtracts the
+row mean to highlight ingroup pull versus outgroup distance.
+
+\section*{Acronyms}
+  \begin{tabbing}
+    \hspace*{2.4cm}  \= \kill
+    LLM      \> Large Language Model \\[0.5ex]
+    EVoC     \> Embedding Vector Oriented Clustering \\[0.5ex]
+    UMAP     \> Uniform Manifold Approximation and Projection \\[0.5ex]
+    PCA      \> Principal Component Analysis \\[0.5ex]
+    CAC      \> Cyberspace Administration of China (regulatory regime tag) \\[0.5ex]
+  \end{tabbing}
+
+\clearpage
